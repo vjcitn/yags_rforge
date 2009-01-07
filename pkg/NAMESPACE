@@ -1,0 +1,14 @@
+useDynLib(yags)
+
+import(tools)
+import(methods)
+
+exportClasses("yagsResult", "simout", "hetEval", "yagsAdeq")
+
+exportMethods("coef", "zTable", "alpha", "wcor", "sealp", "show", "adeq")
+
+export("yags", "rmvlnorm", "hetSim", "getCriteria", "hetsim.control", "csmat",
+ "getCriteria.control", "hetEval", "MSEslo", "SEslo", "yags.adeqReport", "mvnsamp",
+ "del1", "del2", "allcrit", "picks", "rar1poi", "picks2", "summarize", "getPicks", "adap")
+
+

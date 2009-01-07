@@ -1,0 +1,10 @@
+Package: yags
+Version: 6.0-0
+Title: Yet Another GEE Solver
+Author: Vince Carey <stvjc@channing.harvard.edu>
+Depends: methods, MASS
+Maintainer: Vince Carey <stvjc@channing.harvard.edu>
+Description: Extensible GEE solver
+License: GPL2
+URL: http://www.biostat.harvard.edu/~carey
+Packaged: Mon Jun 30 22:34:25 2008; stvjc
