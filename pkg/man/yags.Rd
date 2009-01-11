@@ -9,7 +9,7 @@ Solves GEEs in an extensible way, with a C++ engine.
 $Header: /udd/stvjc/VCROOT/yags/man/yags.Rd,v 5.1 2007/12/11 16:57:19 stvjc Exp $
 }
 \usage{
-yags(formula, id, cor.met=NULL, family=gaussian, corstruct="independence", 
+yags(formula, id, cor.met=NULL, family=gaussian(), corstruct="independence", 
     control=yags.control(), weights=NULL, betainit=NULL, alphainit=NULL, 
     data=list(), subset=NULL)
 }
@@ -27,8 +27,8 @@ default (gaussian -- linear link, constant variance),
 poisson() (log link, variance = mean),
 Gamma() (reciprocal link, variance = mu*mu),
 binomial (logit link, binomial variance), 
-quasi(link=log, var=mu^2), quasi(link = "identity", var=mu), 
-or quasi(link=:identity:, var=mu^2)}
+quasi(link=log, var=\eqn{mu^2}), quasi(link = "identity", var=mu), 
+or quasi(link=:identity:, var=\eqn{mu^2})}
   \item{corstruct}{ string describing working correlation model.
 For Wang and Carey 2004 JASA article structure, use "UQ.fom"
 
