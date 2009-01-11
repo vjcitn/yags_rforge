@@ -28,7 +28,7 @@ compiled according to the value of \code{cxx}, and
 transformed to \code{libu.so} by \code{R SHLIB}.
 The program can be modified and relinked to specify
 calculations of working correlation models selectable through
-corstruc="user" in yags.}
+corstruc="user" in yags.
 }
 \value{
 Nothing returned, all side-effects.  You must typically
