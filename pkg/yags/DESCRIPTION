@@ -1,8 +1,8 @@
 Package: yags
-Version: 6.0-3
+Version: 6.0-4
 Title: Yet Another GEE Solver
 Author: Vince Carey <stvjc@channing.harvard.edu>
-Depends: methods, MASS
+Depends: methods, MASS, nlme
 Maintainer: Vince Carey <stvjc@channing.harvard.edu>
 Description: Extensible GEE solver
 License: GPL2

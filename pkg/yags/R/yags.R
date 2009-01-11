@@ -304,10 +304,10 @@ if (corstruct == "unstructured")
 		"UJ.equi", "UJ.equimart", "user")
 	if(is.na(corcode <- match(corstruct, CORSTR.OPTS)))
 		stop(paste("only",CORSTR.OPTS,"corstrs supported"))
-            sealp.OK <- F
+            sealp.OK <- FALSE
 # at this point we know hardcode==T, so UJ.fom selection gets sealp
        if (corstruct=="UJ.fom" | corstruct=="UJ.equi")
-            sealp.OK <- T
+            sealp.OK <- TRUE
         ctl <- control
 	out <- .C("yags_engine",
 		as.integer(n),
@@ -339,7 +339,7 @@ if (corstruct == "unstructured")
 		as.integer(ctl$Ua.gridnpts),
 		as.double(ctl$Ua.secantdel), as.double(weights),
                 qls=as.double(0), pan.aic=as.double(0), gau.ll=as.double(0),
-                as.double(OFFSET), as.integer(ctl$fixscale))
+                as.double(OFFSET), as.integer(ctl$fixscale), PACKAGE="yags")
         wcovmat <- wcormat <- new("matrix")
         if (corstruct=="unstructured")
                {

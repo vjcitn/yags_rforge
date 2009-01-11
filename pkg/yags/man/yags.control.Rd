@@ -9,9 +9,9 @@ in the standard NR.  the iteration process is controlled
 by parameters set in this function.
 }
 \usage{
-yags.control(maxiter=15, tol=1e-04, verbose=F, Ua.maxit=20, Ua.tol=0.001, 
+yags.control(maxiter=15, tol=1e-04, verbose=FALSE, Ua.maxit=20, Ua.tol=0.001, 
       Ua.gridlo=0.1, Ua.gridhi=0.9, Ua.gridnpts=10, Ua.secantdel=0.01, 
-      fixscale=F)
+      fixscale=FALSE)
 }
 %- maybe also `usage' for other objects documented here.
 \arguments{
