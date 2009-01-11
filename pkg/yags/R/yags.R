@@ -169,11 +169,11 @@ setMethod("show", "yagsAdeq", function(object) {
 setMethod("show", "yagsResult", 
      function(object) print.yagsResult(object))
   
-yags.control <- function(maxiter=15, tol=.0001, verbose=F,
+yags.control <- function(maxiter=15, tol=.0001, verbose=FALSE,
                   Ua.maxit=20, Ua.tol=0.001, 
                   Ua.gridlo=0.1, Ua.gridhi=0.9,
                   Ua.gridnpts = 10, Ua.secantdel = 0.01,
-                  fixscale=F)
+                  fixscale=FALSE)
     list(maxiter=maxiter, tol=tol, verbose=verbose,
                   Ua.maxit=Ua.maxit, Ua.tol=Ua.tol, 
                   Ua.gridlo=Ua.gridlo, Ua.gridhi=Ua.gridhi,
@@ -193,7 +193,7 @@ yags <- function(formula, id,
 #
 # need id for error checking
 #
-	m <- match.call(expand=F)
+	m <- match.call(expand=FALSE)
         m$family <- m$corstruct <- m$control <- m$betainit <-
             m$alphainit <- NULL
         m[[1]] <- as.name("model.frame")
@@ -217,7 +217,7 @@ yags <- function(formula, id,
 #
 # need to revise id/cor.met/weights in case of subsetting
 #
-	m <- match.call(expand=F)
+	m <- match.call(expand=FALSE)
         m$family <- m$corstruct <- m$control <- m$betainit <-
             m$alphainit <- NULL
         m[[1]] <- as.name("model.frame")
@@ -245,7 +245,7 @@ yags <- function(formula, id,
 	if (ncol(y)==2)
 		{
 		n <- apply(y,1,sum)
-		y <- y[,1,drop=F]/n
+		y <- y[,1,drop=FALSE]/n
 		weights <- 1/(weights*n)
 		}
 	else weights <- 1/(weights)
