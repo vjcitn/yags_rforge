@@ -3,9 +3,14 @@
 %- Also NEED an `\alias' for EACH other topic documented here.
 \title{ create libu.so in current working directory }
 \description{
+THIS IS ONLY A POTENTIAL FUNCTIONALITY -- IF YOU NEED TO USE IT CONTACT
+VJ CAREY --
+
 creates a trivial C++ file to allow dynamic loading to
 succeed and as a template for C++ extensions to the
 working correlation model repertory of yags
+
+
 }
 \usage{
 # NOT FUNCTIONING UNLESS EXPERIMENTAL_USERCOR defined in C++
@@ -41,7 +46,9 @@ will follow R rather than MC++ protocols. }
 \seealso{  }
 
 \examples{
+\dontrun{
 yags.make.libu()
+}
 }
 \keyword{ models }% at least one, from doc/KEYWORDS
 %\keyword{ C++ }% at least one, from doc/KEYWORDS

@@ -21,7 +21,7 @@ a data.frame with columns y, id and tim
 
 \examples{
 mydf <- mvnsamp()
-with(mydf, yags(y~tim,id=id,corstr="exchangeable"))
+with(mydf, yags(y~tim,id=id,corstr="exchangeable", alphainit=.1))
 }
 \keyword{multivariate}
 

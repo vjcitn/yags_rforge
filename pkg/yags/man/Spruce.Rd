@@ -14,9 +14,7 @@ Two strata: control, and treated with ozone.
     \item{Time}{a numeric vector}
     \item{Subject}{a numeric vector}
     \item{treated}{a numeric vector}
-    \item{trtfac}{a factor with levels}
-    \item{trtfac}{\code{control} }
-    \item{trtfac}{\code{treated} }
+    \item{trtfac}{a factor with levels control, treated}
   }
 }
 \details{

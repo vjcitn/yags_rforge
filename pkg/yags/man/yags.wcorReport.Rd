@@ -3,8 +3,8 @@
 %- Also NEED an `\alias' for EACH other topic documented here.
 \title{ report on working correlation elements of a GEE solution; not
 intended to be called directly. }
-\description{
-}
+\description{ report on working correlation elements of a GEE solution; not
+intended to be called directly. }
 \usage{
 yags.wcorReport(x, ...)
 }
