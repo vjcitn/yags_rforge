@@ -43,7 +43,16 @@ echo $contents; } ?>
 
 <!-- end of project description -->
 
-<p> No content added. </p>
+<p> This page describes various R packages provided in the yags project.  Additional information
+is provided in vignettes supplied with each package.</p>
+<ul>
+ <li>yags: yet another GEE solver.  Provides a formula interface for GEE, with some facilities for specifying and
+adding new approaches to modeling intracluster correlation.
+ <li>cremo: comparative rendering of modeling outputs.  Accepts lists of model objects and produces
+concise tables that collect coefficients and inferential quantities.  The objective is to simplify
+summarization of model sequences, where variables are added and dropped successively.
+</ul>
+</ul>
 
 <p> The <strong>project summary page</strong> you can find <a href="http://<?php echo $domain; ?>/projects/<?php echo $group_name; ?>/"><strong>here</strong></a>. </p>
 
