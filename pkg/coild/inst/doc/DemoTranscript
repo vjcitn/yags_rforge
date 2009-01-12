@@ -1,0 +1,38 @@
+library(help=coild)
+example(diggle.test)
+?diggle.test
+diggle.test
+library(coild)
+example(diggle.test)
+qqplot(allp,punif)
+args(qqplot)
+?qqplot
+?qqnorm
+qqnorm(allp)
+dev.off()
+library(help=coild)
+chenLit
+prompt(chenLit)
+demoRC <- read.table("demoRecomb.dat")
+demoRC[1:3,]
+demoRC <- read.table("demoRecomb.dat",h=T)
+demoRC[1:3,]
+args(chenLit)
+args(gee)
+library(gee)
+install.packages("gee")
+args(chenLit)
+D1 <- chenLit( edasth ~ ARM1+ARM2, idname="portid", yname="edasth", xnames=c("ARM1","ARM2"), timesname="YRSONST", stratName="class", stratDF=demoRC, B=10)
+D1 <- chenLit( edasth ~ ARM1+ARM2, idname="portid", yname="edasth", xnames=c("ARM1","ARM2"), timesname="YRSONST", stratName="class", stratDf=demoRC, B=10)
+gsf <- vi(geeCoSize)
+D1 <- chenLit( edasth ~ ARM1+ARM2, idname="portid", yname="edasth", xnames=c("ARM1","ARM2"), timesname="YRSONST", stratName="class", stratDf=demoRC, B=10, sizeFun=gsf)
+library(MASS)
+install.packages("MASS")
+install.packages("VR")
+install.packages("VR")
+library(MASS)
+args(ginv)
+D1 <- chenLit( edasth ~ ARM1+ARM2, idname="portid", yname="edasth", xnames=c("ARM1","ARM2"), timesname="YRSONST", stratName="class", stratDf=demoRC, B=10, sizeFun=gsf)
+D1
+rperm
+gsf

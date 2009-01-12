@@ -1,0 +1,9 @@
+Package: coild
+Version: 0.5-0
+Title: Classification Of Incomplete Longitudinal Datastructures
+Author: Vince Carey <stvjc@channing.harvard.edu>
+Depends: methods, combinat, gee, nlme
+Maintainer: Vince Carey <stvjc@channing.harvard.edu>
+Description: tests for various missing data conditions
+License: GPL2
+URL: 

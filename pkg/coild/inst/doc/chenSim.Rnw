@@ -1,0 +1,104 @@
+
+%
+% NOTE -- ONLY EDIT THE .Rnw FILE!!!  The .tex file is
+% likely to be overwritten.
+%
+\documentclass[12pt]{article}
+
+\usepackage{amsmath,pstricks}
+\usepackage[authoryear,round]{natbib}
+\usepackage{hyperref}
+
+
+\textwidth=6.2in
+\textheight=8.5in
+%\parskip=.3cm
+\oddsidemargin=.1in
+\evensidemargin=.1in
+\headheight=-.3in
+
+\newcommand{\scscst}{\scriptscriptstyle}
+\newcommand{\scst}{\scriptstyle}
+
+\bibliographystyle{plainnat} 
+ 
+\begin{document}
+
+\section*{A simulation framework for MCAR diagnosis}
+
+<<>>=
+require(coild)
+chenSim <- function( NSIM=1, nfam=200, nperfam=2,  p1=0, p2=0, a0=0, a1=1 ) {
+ require(gee)
+ ans <- matrix(NA,nr=NSIM,nc=5)
+ marans <- matrix(NA,nr=NSIM,nc=5)
+ dimnames(ans) <- list(NULL,c("a0","a1","rsea0","rsea1","cor"))
+ dimnames(marans) <- list(NULL,c("a0","a1","rsea0","rsea1","cor"))
+ for (i in 1:NSIM)
+   {
+   cat(i)
+   n <- nfam * nperfam
+   z <- runif(nfam, -1, 1)
+   y1 <- rbinom(nfam, 1, 1/(1+exp(a0+a1*z)))
+   yt2 <- rbinom(nfam, 1, 1/(1+exp(a0+a1*z)))
+   U <- rbinom(nfam,1,(1+z)/2)
+   y2 <- U*y1 + (1-U)*yt2
+   yvec <- as.numeric(rbind(y1,y2))
+   zmat <- rbind(z,z)
+   zvec <- as.numeric(rbind(z,z))
+   id <- as.numeric(sort(rep(1:nfam,2)))
+   inds <- rep(1:2,nfam)
+   part1 <- id <= nfam/2
+   if (p1 > 0 & p2 > 0)
+   {
+    dry1 <- rbinom(nfam,1,.5-p1/2+p1*(yvec[inds==2]))
+    dry1[id[inds==1] > nfam/2] <- 0
+    dry2 <- rbinom(nfam,1,.5-p2/2+p2*(yvec[inds==1]))
+    dry2[id[inds==2] <= nfam/2] <- 0
+    patt <- cbind(dry1,dry2)
+    pfun <- function(x) ifelse(x[1]==1,1,ifelse(x[2]==1,2,0))
+    patts <- apply(patt,1,pfun)
+    patts <- as.numeric(rbind(patts,patts))
+    dry <- as.numeric(rbind(dry1, dry2))
+    }
+   complDf <<- data.frame(y=yvec, z=zvec, id=id, patts=patts)
+   cat("comple:")
+   print(dim(complDf))
+   mod <- gee( y~z, id=id, data=complDf, fam=binomial, cor="independence")
+   if (p1 > 0 & p2 > 0) 
+        {
+        marDf <<- complDf[dry==0,]
+        print(dim(marDf))
+        print(dim(marDf))
+        marmod <- gee( y~z, id=id, data=marDf, fam=binomial, cor="independence")
+        }
+   co <- summary(mod)$working.cor[2,1]
+   sm <- summary(mod)$coef
+   ans[i,] <- c(sm[1,1], sm[2,1], sm[1,4], sm[2,4], co)
+   if (p1 > 0 & p2 > 0) 
+     {
+     marco <- summary(marmod)$working.cor[2,1]
+     marsm <- summary(marmod)$coef
+     marans[i,] <- c(marsm[1,1], marsm[2,1], marsm[1,4], marsm[2,4], marco)
+     }
+   }
+ return( list(ans=ans, marans=marans) )
+}
+
+#A1 <- chenSim(NSIM=500)
+#A1.0.0 <- A1
+A1 <- chenSim(NSIM=500,p1=.6, p2=.6)
+print(apply(A1[[1]],2,mean))
+print(apply(A1[[2]],2,mean))
+cic <- function(e,se,tr) (e-1.96*se < tr) & (tr < e+1.96*se)
+cov1 <- mean(apply(A1[[1]],1,function(x)cic(x[1], x[3], 0)))
+cov2 <- mean(apply(A1[[1]],1,function(x)cic(x[2], x[4], -1)))
+print(c(cov1,cov2))
+cov1 <- mean(apply(A1[[2]],1,function(x)cic(x[1], x[3], 0)))
+cov2 <- mean(apply(A1[[2]],1,function(x)cic(x[2], x[4], -1)))
+print(c(cov1,cov2))
+
+   
+@
+\end{document}
+   
