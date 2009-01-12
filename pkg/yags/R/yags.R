@@ -390,7 +390,6 @@ csmat <- function(n=4, rho=.5)
 
 ar1mat <- function(n=4, rho=.5)
  {
-# require(mva)
  o <- as.matrix(dist(1:n))
  rho^o
  }
