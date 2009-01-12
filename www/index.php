@@ -45,6 +45,8 @@ echo $contents; } ?>
 
 <p> This page describes various R packages provided in the yags project.  Additional information
 is provided in vignettes supplied with each package.</p>
+<p> In general, you can install current packages described hear using R: <code>install.packages([packagename],repos="http://R-Forge.R-project.org")</code>
+</p>
 <ul>
  <li>yags: yet another GEE solver.  Provides a formula interface for GEE, with some facilities for specifying and
 adding new approaches to modeling intracluster correlation.
