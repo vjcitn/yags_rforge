@@ -1,0 +1,11 @@
+Package: cremo
+Version: 1.0-4
+Title: cremo: Comparative REndering of Model Outputs 
+Author: Vince Carey <stvjc@channing.harvard.edu>
+Maintainer: Vince Carey <stvjc@channing.harvard.edu>
+Description: tools for formatting multiple model fit results
+Depends: methods
+Suggests: yags, xtable
+License: GPL2
+URL: http://www.biostat.harvard.edu/~carey/cremo.html
+Requires: survival

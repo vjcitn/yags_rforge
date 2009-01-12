@@ -1,0 +1,208 @@
+
+%
+% NOTE -- ONLY EDIT THE .Rnw FILE!!!  The .tex file is
+% likely to be overwritten.
+%
+
+%\VignetteIndexEntry{cremo: comparative rendering of modeling outputs}
+%\VignetteDepends{xtable,cremo}
+%\VignetteKeywords{formatting, modeling, output}
+%\VignettePackage{cremo}
+
+\documentclass[12pt]{article}
+
+\usepackage{amsmath,pstricks}
+\usepackage[authoryear,round]{natbib}
+\usepackage{hyperref}
+\usepackage{Sweave}
+
+
+\textwidth=6.2in
+\textheight=8.5in
+%\parskip=.3cm
+\oddsidemargin=.1in
+\evensidemargin=.1in
+\headheight=-.3in
+
+\newcommand{\scscst}{\scriptscriptstyle}
+\newcommand{\scst}{\scriptstyle}
+
+
+\newcommand{\Rfunction}[1]{{\texttt{#1}}}
+\newcommand{\Robject}[1]{{\texttt{#1}}}
+\newcommand{\Rpackage}[1]{{\textit{#1}}}
+\newcommand{\Rmethod}[1]{{\texttt{#1}}}
+\newcommand{\Rfunarg}[1]{{\texttt{#1}}}
+\newcommand{\Rclass}[1]{{\textit{#1}}}
+
+\textwidth=6.2in
+
+\bibliographystyle{plainnat} 
+ 
+\begin{document}
+%\setkeys{Gin}{width=0.55\textwidth}
+
+\title{\Rpackage{cremo}: comparative rendering of modeling outputs}
+\author{Vincent J. Carey {\tt <stvjc@channing.harvard.edu>}}
+\maketitle
+
+\section{Introduction}
+
+It is common in practice to use
+statistical models possessing components of the
+form $x^t \beta$, where $x$ is a $p$-vector
+of predictors and $\beta$ a $p$-vector of
+parameters.  Examples include linear regression,
+generalized linear models and their extensions
+to correlated responses, and proportional hazards
+regression.
+
+This package addresses the problem of communicating
+information on
+sequences of fits of models of this type.
+As an analyst ``steps through'' various representations
+of the predictor-response relationship, a collection
+of related models develops, and a concise
+tabular presentation of the collection can be
+quite useful.  Version 1 of \Rpackage{cremo} supports the
+tabulation of sequences of models from a given family.
+The basic format is that each model occupies a column
+of text, with rows corresponding to predictors.
+The row margin is comprised of the union of all
+predictors in the sequence of models, and some ``extra''
+information of interest about all the models.
+The column margin is comprised of the various 
+models.  Model objects produced by \Rfunction{lm},
+\Rfunction{glm}, \Rfunction{geese}, \Rfunction{gee},
+and \Rfunction{alr} are currently supported.
+The S4 system of classes and methods (Chambers, 1998)
+is employed to facilitate management and extension
+of the tools provided.
+
+\section{Example}
+
+I will obtain a sequence of models related to the
+stack loss data.
+<<slruns>>=
+data(stackloss)
+lm1 <- lm( stack.loss ~ Air.Flow, data=stackloss)
+lm2 <- lm( stack.loss ~ Water.Temp, data=stackloss)
+lm3 <- lm( stack.loss ~ Acid.Conc., data=stackloss)
+lm4 <- lm( stack.loss ~ ., data=stackloss)
+@
+Now attach the \Rpackage{cremo} library and
+invoke the key function \Rfunction{concatMods}:
+<<run>>=
+library(cremo)
+print(concatMods(list(lm1, lm2, lm3, lm4)))
+@
+This is a primitive character formulation, the
+basis for a much more attractive output available
+with \Rfunction{xtable}:
+<<run2,results=tex>>=
+library(xtable)
+xtable(concatMods(list(lm1, lm2, lm3, lm4)))
+@
+\clearpage
+\section{Parameters}
+The arguments to \Rfunction{concatMods} are
+<<lkargs>>=
+print(args(concatMods))
+@
+\begin{itemize}
+\item[x:] a list of model fit objects
+\item[mstub:] a character atom that will be used to label columns,
+prepending the count of the column
+\item[type:] one of {\tt se} or {\tt p} telling how parameter
+estimate uncertainty should be reported
+\item[dig:] the number of digits to which all reports are rounded
+\item[clean:] logical telling whether NA elements computed
+by \Rfunction{concatMods} are to be
+converted to blanks.
+\end{itemize}
+
+\section{Customizing the output}
+
+\subsection{Modifying the extra rows}
+
+Currently there is little leeway for customizing output
+using parameters to \Rfunction{concatMods}.  Note that
+the basic structure is that all linear model component
+parameters define
+rows, and several extra items are provided in each column after
+some dashes.  These
+are extracted using a generic \Rfunction{getExtra}:
+<<getE>>=
+print(getMethod("getExtra", "lm"))
+@
+Suppose that instead of this pair of items as supplementary
+model-specific information on each column, you preferred
+to have the $R^2$ value and the number of degrees of freedom
+for the F test.
+You can override the \Rfunction{getExtra} method:
+<<oride>>=
+setMethod("getExtra", "lm", function(x) {
+ sx <- summary(x)
+ c(r.sq=sx$r.squared, df.F=sx$df[1:2])
+})
+<<run3,results=tex>>=
+xtable(concatMods(list(lm1, lm2, lm3, lm4)))
+@
+Note that the \Rfunction{getExtra} protocol is
+fairly simple.  You can prepare any named numeric
+vector as response, and \Rfunction{concatMods} should
+be able to do something reasonable with the result.
+
+\section{Transposition}
+
+Sometimes it is desirable to have rows corresponding
+to models rather than parameters.
+Working from an R matrix, this is fairly easy
+to handle.  Just apply \Rfunction{t} to the
+result of \Rfunction{concatMods}.
+<<run4,results=tex>>=
+xtable(t(concatMods(list(lm1, lm2, lm3, lm4))))
+@
+R has added a V2 column name, has given
+separate columns for all entries.
+Manual editing after generation of \TeX~ output
+can rectify these anomalies.
+
+\section{Future directions}
+
+The problem of marking up modeling results for
+communication can consume considerable effort
+among statistical research workers.  Efforts
+targeted at simplifying aspects of such work include
+the \Rpackage{xtable} package by David Dahl,
+and the Predictive Modeling Markup Language
+(\url{http://www.dmg.org}).
+
+The current \Rpackage{cremo} implementation
+achieves simplicity of use through considerable
+rigidity.  The basic output schema is fixed.
+The basic output
+is essentially a singly stratified table, with
+top part devoted to parameters, standard errors,
+and p-values, and bottom part devoted to vectors
+of model-specific features.  It would be possible
+to obtain more flexible processing by defining
+table strata and associating cell-processing
+functions with these strata.  In some cases
+confidence bounds with various
+confidence coefficients are needed.  In this case it would be nice
+to have separate cell-defining functions
+that include tuning parameters.  
+
+I believe that targeting the R character matrix
+as basic computational result is sensible.  Independent
+tools that format such matrices in HTML or XML
+are becoming more widely available and are easily
+constructed using tools in the \Rpackage{XML} package.
+
+Clearly it will be desirable to handle a broader
+collection of model types, including LME.  This will
+be handled in forthcoming versions.
+
+@
+\end{document}
