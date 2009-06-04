@@ -29,6 +29,11 @@
 \alias{getSE,yagsResult-method}
 \alias{getCoef,yagsResult-method}
 \alias{getExtra,yagsResult-method}
+\alias{getVarn,clogit-method}
+\alias{getP,clogit-method}
+\alias{getSE,clogit-method}
+\alias{getCoef,clogit-method}
+\alias{getExtra,clogit-method}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{ render model outputs for comparison }
 \description{

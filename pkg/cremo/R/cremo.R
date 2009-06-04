@@ -42,6 +42,12 @@ setMethod("getVarn", "gee", function(x) names(coef(x)))
 setMethod("getVarn", "alr", function(x) names(coef(x)))
 setMethod("getVarn", "yagsResult", function(x) row.names(yags.glmReport(x)))
 
+setMethod("getCoef", "clogit", function(x) exp(coef(x)))
+setMethod("getVarn", "clogit", function(x) names(coef(x)))
+setMethod("getSE", "clogit", function(x) rep(NA, length(coef(x))))
+setMethod("getP", "clogit", function(x) summary(x)$coef[,5])
+setMethod("getExtra", "clogit", function(x) summary(x)$sctest )
+
 setMethod("getExtra", "lm", function(x) {
   sx <- summary(x)
   c(r.sq=sx$r.sq, se.resid=sx$sigma) })
@@ -181,7 +187,8 @@ for (i in 1:nm)
 dimnames(comat) <- dimnames(pmat) <- list(allvar, modn)
 cpmat <- pmat
 csemat <- semat
-cpmat[] <- pwrap(as.character(round(pmat,dig)))
+#cpmat[] <- pwrap(as.character(round(pmat,dig)))
+cpmat[] <- pwrap(formatC(pmat,dig=dig))
 csemat[] <- sewrap(as.character(round(semat,dig)))
 comat[] <- as.character(round(comat,dig))
 if (is.numeric(emat)) emat[] <- as.character(round(emat,dig))
