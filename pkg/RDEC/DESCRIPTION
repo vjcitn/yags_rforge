@@ -1,7 +1,7 @@
 Package: RDEC
-Version: 0.0-3
-Title: RDEC
+Version: 0.0-4
+Title: RDEC -- regression with damped exponential correlation
+Description: RDEC -- regression with damped exponential correlation
 Author: V Carey <stvjc@channing.harvard.edu>
 Maintainer: V Carey <stvjc@channing.harvard.edu> 
-Description: RDEC
 License: GPL Version 2 or later.
