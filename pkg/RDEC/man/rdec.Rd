@@ -1,5 +1,9 @@
 \name{rdec}
 \alias{rdec}
+\alias{summary.rdec}
+\alias{print.rdec}
+\alias{print.summary.rdec}
+\alias{rdec}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{ regression with damped exponential correlation }
 \description{
@@ -10,7 +14,7 @@ that generalizes AR(1), CS, and MA(1) covariance structures
 rdec(formula, id, S, data = sys.parent(), subset, 
    na.action = na.fail, omega.init = c(0, 0), 
    omega.low = c(0.001, 0), omega.high = c(0.95, 0.95), 
-   ltol = 0.01, contrasts = NULL)
+   ltol = 0.01, contrasts = NULL, verbose=FALSE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -28,6 +32,9 @@ rdec(formula, id, S, data = sys.parent(), subset,
   \item{verbose}{ print -2 likelihood value per iteration }
 }
 \details{
+In the example, it is noted that 'convergence is suspect'.  It may
+be desirable to use other starting points, or to check convergence using a
+profiling procedure, when such messages are encountered.
 }
 \value{
 a structure with model fitting results

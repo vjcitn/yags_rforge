@@ -67,7 +67,7 @@ quadform.bd.dec <- function(x, id, S, omega)
 	                       id,
 	                       S,
 	                       omega,
-	                       qfp = qfp)
+	                       qfp = qfp, PACKAGE="RDEC")
 	matrix(ans$qfp,p,p)
 }
 
@@ -91,7 +91,7 @@ log.det.bd.dec <- function( id, S, omega )
 		  id,
 		  S,
 		  omega,
-		  ldetout=double(1))
+		  ldetout=double(1), PACKAGE="RDEC")
 	ans$ldetout
 	}
 	
@@ -103,7 +103,7 @@ log.det.bd.cs <- function( id, rho )
 		  as.integer(N),
 		  id,
 		  rho,
-		  ldetout=double(1))
+		  ldetout=double(1), PACKAGE="RDEC")
 	ans$ldetout
 	}
 	
@@ -134,7 +134,7 @@ function(x, y, id, S, omega)
                 id,
                 omega,
                 S,
-                ipp = ipp)
+                ipp = ipp, PACKAGE="RDEC")
         matrix(ans$ipp, p, q)
 }
 
@@ -155,7 +155,7 @@ rdec.omega.score <- function( omega, x, y, id, S, beta, sig2 )
 		S,
 		as.integer(n),
 		as.integer(p),
-		sc.omega = double(2))
+		sc.omega = double(2), PACKAGE="RDEC")
 	ans$sc.omega
 }
 
@@ -193,7 +193,7 @@ rdec.full.hess <- function( omega, x, y, id, S, beta, sig2 )
 		Hss = hss,
 		Hsg = hsg,
 		Hst = hst,
-		Homega = homega)
+		Homega = homega, PACKAGE="RDEC")
 	ans$Homega <- matrix(ans$Homega, 2, 2)
 	tmp1 <- cbind(hbb, 0, ans$Hbg, ans$Hbt)
 	tmp2 <- rbind(tmp1, c(rep(0, p), ans$Hss, ans$Hsg, ans$Hst))
@@ -211,10 +211,10 @@ rdec.prof.hess <- function( omega, x, y, id, S, beta, sig2 )
 
 rdec <- function(formula, id, S, data = sys.parent(), subset, na.action=na.fail, omega.init = c(0, 0), 
 	omega.low = c(0.001, 0), omega.high = c(0.95, 0.95), ltol = 0.01, 
-	contrasts = NULL)
+	contrasts = NULL, verbose=FALSE)
 {
 	call <- match.call()
-	m <- match.call(expand = F)
+	m <- match.call(expand = FALSE)
         if(missing(data) & !missing(na.action))
                 stop("supply data frame (data=) if na.action is to be used")
         if(!missing(data))
@@ -224,12 +224,12 @@ rdec <- function(formula, id, S, data = sys.parent(), subset, na.action=na.fail,
 	m[[1]] <- as.name("model.frame")
 	m <- eval(m, sys.parent())
 	Terms <- attr(m, "terms")
-	Y <- model.extract(m, response)
-	X <- model.matrix(Terms, m, contrasts)
+	Y <- model.extract(m, "response")
+	X <- model.matrix(Terms, m, "contrasts")
 	id <- as.double(id)
 	S <- as.double(S)
 	fit <- rdec.fit(X, Y, id, S, omegainit = omega.init, omega.high = 
-		omega.high, omega.low = omega.low, ltol = ltol)
+		omega.high, omega.low = omega.low, ltol = ltol, verbose=verbose)
 	fit$terms <- Terms
 	fit$call <- call
 	fit$N <- length(Y)
@@ -237,7 +237,7 @@ rdec <- function(formula, id, S, data = sys.parent(), subset, na.action=na.fail,
 	fit$fitted.values <- X %*% fit$coefficients
 	fit$residuals <- Y - fit$fitted.values
 	attr(fit, "na.message") <- attr(m, "na.message")
-	class(fit) <- c("rdec", "lm")
+	class(fit) <- c("rdec") #, "lm")
 	fit
 }
 
@@ -497,7 +497,7 @@ print.summary.rdec <- function(x, digits = max(3, .Options$digits - 3), ...)
 	dimnames(corm)[[1]] <- c("par. est.", "s.e.")
 	print(corm)
 	cat("\nRegression coefficients:\n")
-	print(format(round(x$coef, digits = digits)), quote = F, ...)
+	print(format(round(x$coef, digits = digits)), quote = FALSE, ...)
 	cat("\nMLE of resid. variance:", format(signif(x$sigma^2, digits)), "\n")
 	cat("-2 log likelihood: ", format(x$m2ll, digits = log10(abs(x$m2ll)) + 4), 
 		"\n")

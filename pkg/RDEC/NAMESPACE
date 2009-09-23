@@ -1,0 +1,7 @@
+useDynLib("RDEC")
+
+S3method("print", "rdec")
+S3method("summary", "rdec")
+S3method("print", "summary.rdec")
+
+export("rdec")
