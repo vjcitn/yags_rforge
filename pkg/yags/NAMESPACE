@@ -1,0 +1,4 @@
+
+useDynLib(yags)
+
+exportPattern("^[^\\.]")
