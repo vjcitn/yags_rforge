@@ -144,21 +144,12 @@ del2 = function (x) {
 }
 
 
-allcrit = function (x)
-{
-    c(Lg.ind = x$iden$log, Lg.exch = x$exchG$log, Lg.ar1 = x$ar1G$log,
-        del1.ind = tryCatch(del1(x$indepen),NA), 
-           del1.exch = tryCatch(del1(x$exchange),NA),
-           del1.ar1 = tryCatch(del1(x[["ar1"]]),NA),
-        pan.ind = x$indepen@pan.aic, pan.exch = x$exchange@pan.aic,
-        pan.ar1 = x[["ar1"]]@pan.aic,
-        del2.ind = tryCatch(del2(x$indepen),NA), del2.exch = tryCatch(del2(x$exchange),NA),
-           del2.ar1 = tryCatch(del2(x[["ar1"]]),NA))
-}
 
 allcrit = function (x) 
 {
-    z = try(c(Lg.ind = x$iden$log, Lg.exch = x$exchG$log, Lg.ar1 = x$ar1G$log, 
+    #z = try(c(Lg.ind = x$iden$log, Lg.exch = x$exchG$log, Lg.ar1 = x$ar1G$log, 
+    z = try(c(Lg.ind = x$indepen@m2LG/-2., Lg.exch = x$exchange@m2LG/-2., 
+                   Lg.ar1 = x[["ar1"]]@m2LG/-2.,
         del1.ind = del1(x$indepen), del1.exch = del1(x$exchange), 
         del1.ar1 = del1(x[["ar1"]]), pan.ind = x$indepen@pan.aic, 
         pan.exch = x$exchange@pan.aic, pan.ar1 = x[["ar1"]]@pan.aic, 
