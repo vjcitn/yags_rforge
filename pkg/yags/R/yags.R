@@ -36,7 +36,7 @@ setClass("yagsResult",
 	sealp="numeric", qls="numeric", pan.aic="numeric",
 	sealp.OK="logical", varnames="character",
 	n="numeric", nclus="numeric", maxni="numeric",
-        wcovmat="matrix", wcormat="matrix", m2LG="numeric", del1="numeric",
+        wcovmat="matrix", wcormat="matrix", m2LG="numeric", del1="numeric", del2="numeric",
         critcoefs = "list",
 	Call="call") )
 
@@ -420,16 +420,21 @@ if (corstruct == "unstructured")
         alld = lapply(list(indmod.hom, excmod.hom, ar1mod.hom,
                             indmod.lin, excmod.lin, ar1mod.lin,
                             indmod.qua, excmod.qua, ar1mod.qua), del1)
+        alld2 = lapply(list(indmod.hom, excmod.hom, ar1mod.hom,
+                            indmod.lin, excmod.lin, ar1mod.lin,
+                            indmod.qua, excmod.qua, ar1mod.qua), del2)
         allc = lapply(list(indmod.hom, excmod.hom, ar1mod.hom,
                             indmod.lin, excmod.lin, ar1mod.lin,
                             indmod.qua, excmod.qua, ar1mod.qua), coef)
         ansm = unlist(allm)
         ansd = unlist(alld)
+        ansd2 = unlist(alld2)
         names(allc) = names(ansd) = names(ansm) = c("ind.hom", "exch.hom", "ar1.hom", 
                            "ind.lin", "exch.lin", "ar1.lin", 
                            "ind.qua", "exch.qua", "ar1.qua")
         final.out@m2LG = c(given=M2LG.given, ansm)
         final.out@del1 = c(given=as.numeric(del1(final.out)), ansd)
+        final.out@del2 = c(given=as.numeric(del2(final.out)), ansd2)
         final.out@critcoefs = allc
         }
         else {
