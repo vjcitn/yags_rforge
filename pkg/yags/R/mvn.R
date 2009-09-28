@@ -1,6 +1,6 @@
 
 gauPatCorLL <- function(y, x, tim, beta, var, id, clusCorFun, corPar, invlink=function(x)x,
-    hetfac = function(m)1)
+    hetfac = function(m)rep(1,length(m)))
  {
 #
 # use hetfac = function(m) m for linear het, function(m)m^2 for quadratic
@@ -22,7 +22,7 @@ gauPatCorLL <- function(y, x, tim, beta, var, id, clusCorFun, corPar, invlink=fu
  -2*ll
  }
 
-m2LG = function(gmod,response,x,id,tim,invlink=function(x)x,hetfac=function(m)1) {
+m2LG = function(gmod,response,x,id,tim,invlink=function(x)x,hetfac=function(m)rep(1,length(m))) {
      #
      # some pattern definitions
      exchCor = function (par, coord) 

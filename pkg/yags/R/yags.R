@@ -184,7 +184,8 @@ yags.control <- function(maxiter=15, tol=.0001, verbose=FALSE,
 yags <- function(formula, id, 
         cor.met=NULL, family=gaussian(),
         corstruct="independence", control=yags.control(), 
-        weights=NULL, betainit=NULL, alphainit=NULL, data=list(), subset=NULL)
+        weights=NULL, betainit=NULL, alphainit=NULL, data=list(), subset=NULL,
+          allcrit=FALSE)
 {
 #
 # $Header: /udd/stvjc/VCROOT/yags/R/yags.R,v 5.6 2008/03/14 18:39:13 stvjc Exp $
@@ -195,7 +196,7 @@ yags <- function(formula, id,
 #
 	m <- match.call(expand=FALSE)
         m$family <- m$corstruct <- m$control <- m$betainit <-
-            m$alphainit <- NULL
+            m$alphainit <- m$allcrit <- NULL
         m[[1]] <- as.name("model.frame")
         TMP <- eval(m, sys.parent())
 	id <- TMP[["(id)"]]
@@ -219,7 +220,7 @@ yags <- function(formula, id,
 #
 	m <- match.call(expand=FALSE)
         m$family <- m$corstruct <- m$control <- m$betainit <-
-            m$alphainit <- NULL
+            m$alphainit <- m$allcrit <- NULL
         m[[1]] <- as.name("model.frame")
         TMP <- eval(m, sys.parent())
 	id <- TMP[["(id)"]]
@@ -233,8 +234,10 @@ yags <- function(formula, id,
                        "but independence and exch. working corstructs"))
 	weights <- TMP[["(weights)"]]
 #
-        if(corstruct == "independence" || corstruct == "exchangeable")
-		cor.met <- rep(0, length(id))
+# -- 2009.09.27 -- why?
+#
+#        if(corstruct == "independence" || corstruct == "exchangeable")
+#		cor.met <- rep(0, length(id))
 #
 # now get customary quantities
 #	
@@ -309,6 +312,7 @@ if (corstruct == "unstructured")
        if (corstruct=="UJ.fom" | corstruct=="UJ.equi")
             sealp.OK <- TRUE
         ctl <- control
+        if (is.null(cor.met)) cor.met = rep(0,n)
 	out <- .C("yags_engine",
 		as.integer(n),
 		as.integer(p),
@@ -358,7 +362,7 @@ if (corstruct == "unstructured")
 	mpp <- function(x, p)
 	matrix(x, p, p)
 	Call <- match.call()
-
+        if (out$outiter >= ctl$maxiter) warning("maximum number of yags iterations consumed, consider incrementing maxit in control parameter")
 	final.out <- new("yagsResult", 
                 coefficients = tmpsig$coef, naive.parmvar = mpp(
 		tmpsig$bcov.naive, p), robust.parmvar = mpp(tmpsig$bcov.rob,
@@ -376,9 +380,52 @@ if (corstruct == "unstructured")
 	else if(abs(tmpsig$ua) > ctl$Ua.tol) warning(paste(
 			"Alp est func not solved, results suspect, Ua=", round(
 			tmpsig$ua, 5), sep = ""))
-        M2LG = m2LG(final.out, as.double(y), x, id, cor.met, invlink=family$linkinv,
+        M2LG.given = m2LG(final.out, as.double(y), x, id, cor.met, invlink=family$linkinv,
              hetfac=family$variance)
-        final.out@m2LG = M2LG
+#yags <- function(formula, id, 
+#        cor.met=NULL, family=gaussian(),
+#        corstruct="independence", control=yags.control(), 
+#        weights=NULL, betainit=NULL, alphainit=NULL, data=list(), subset=NULL)
+    if (allcrit) {
+        if (!is.null(subset)) stop("can't use subset with allcrit=TRUE -- please create basic data frame")
+        ndata= cbind(data, id=id, cor.met=cor.met, weights=weights)
+        cat("hom...")
+        indmod.hom = yags(formula, id, cor.met, family, corstruct="independence", control=control,
+          weights=weights, betainit=betainit, alphainit=alphainit, data=ndata)
+        excmod.hom = yags(formula, id, cor.met, family, corstruct="exchangeable", control=control,
+          weights=weights, betainit=betainit, alphainit=.5, data=ndata)
+        ar1mod.hom = yags(formula, id, cor.met, family, corstruct="ar1", control=control,
+          weights=weights, betainit=betainit, alphainit=.5, data=ndata)
+        lhetfam = family
+        qhetfam = family
+        lhetfam$variance = function(mu) mu
+        qhetfam$variance = function(mu) mu^2
+        cat("lin...")
+        indmod.lin = yags(formula, id, cor.met, family=lhetfam, corstruct="independence", control=control,
+          weights=weights, betainit=betainit, alphainit=alphainit, data=ndata)
+        excmod.lin = yags(formula, id, cor.met, family=lhetfam, corstruct="exchangeable", control=control,
+          weights=weights, betainit=betainit, alphainit=.5, data=ndata)
+        ar1mod.lin = yags(formula, id, cor.met, family=lhetfam, corstruct="ar1", control=control,
+          weights=weights, betainit=betainit, alphainit=.5, data=ndata)
+        cat("qua...")
+        indmod.qua = yags(formula, id, cor.met, family=qhetfam, corstruct="independence", control=control,
+          weights=weights, betainit=betainit, alphainit=alphainit, data=ndata)
+        excmod.qua = yags(formula, id, cor.met, family=qhetfam, corstruct="exchangeable", control=control,
+          weights=weights, betainit=betainit, alphainit=.5, data=ndata)
+        ar1mod.qua = yags(formula, id, cor.met, family=qhetfam, corstruct="ar1", control=control,
+          weights=weights, betainit=betainit, alphainit=.5, data=ndata)
+        cat("...\n")
+        allm = lapply(list(indmod.hom, excmod.hom, ar1mod.hom,
+                            indmod.lin, excmod.lin, ar1mod.lin,
+                            indmod.qua, excmod.qua, ar1mod.qua), function(x)x@m2LG)
+        ansm = unlist(allm)
+        names(ansm) = c("ind.hom", "exch.hom", "ar1.hom", 
+                           "ind.lin", "exch.lin", "ar1.lin", 
+                           "ind.qua", "exch.qua", "ar1.qua")
+        final.out@m2LG = c(given=M2LG.given, ansm)
+        }
+        else final.out@m2LG = M2LG.given
+        
 #m2LG = function(gmod,response,x,id,tim,invlink=function(x)x,hetfac=function(m)1) {
 	final.out
 }

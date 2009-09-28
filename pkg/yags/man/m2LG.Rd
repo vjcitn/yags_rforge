@@ -58,7 +58,8 @@ VJ Carey
 %}
 
 \examples{
-y = rnorm(200)
+set.seed(2340)
+y = rnorm(200,10)
 x = runif(200)
 id = as.numeric(rep(1:50, each=4))
 require(gee)
@@ -72,6 +73,19 @@ m2LG(f2, y, cbind(1,x), id, id ) # tim variable irrelevant
 -2*f3$logLik # for ML estimate of correlation
 f4 = gls(y~x, cor=corCompSymm(f2@alpha, form=~1|id,fixed=TRUE), method="ML")
 -2*f4$logLik
-
+# relate m2LG to deviance in simple case
+f5 = yags(y~x, id=id, corstr="independence")
+summary(f5)
+f5@m2LG
+f5@phi*(f5@m2LG-200*log(2*pi*f5@phi))
+f6 = glm(y~x)
+f6
+# generate heteroskedastic data and check
+y2 = rnorm(200,25,(1+2*x)^2)
+f7 = yags(y2~x, id=id, corstr="independence", family=quasi(var="mu^2"), betainit=c(25,.03))
+f7@m2LG
+f7@phi*(f7@m2LG-200*log(2*pi*f7@phi))
+f8 = glm(y2~x, family=quasi(var="mu^2"))
+summary(f8)
 }
 \keyword{ models }
