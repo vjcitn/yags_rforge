@@ -429,12 +429,12 @@ if (corstruct == "unstructured")
         ansm = unlist(allm)
         ansd = unlist(alld)
         ansd2 = unlist(alld2)
-        names(allc) = names(ansd) = names(ansm) = c("ind.hom", "exch.hom", "ar1.hom", 
+        names(ansd2) = names(allc) = names(ansd) = names(ansm) = c("ind.hom", "exch.hom", "ar1.hom", 
                            "ind.lin", "exch.lin", "ar1.lin", 
                            "ind.qua", "exch.qua", "ar1.qua")
-        final.out@m2LG = c(given=M2LG.given, ansm)
-        final.out@del1 = c(given=as.numeric(del1(final.out)), ansd)
-        final.out@del2 = c(given=as.numeric(del2(final.out)), ansd2)
+        final.out@m2LG = c(ansm, given=M2LG.given)
+        final.out@del1 = c(ansd, given=as.numeric(del1(final.out)))
+        final.out@del2 = c(ansd2, given=as.numeric(del2(final.out)))
         final.out@critcoefs = allc
         }
         else {
