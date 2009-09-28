@@ -43,6 +43,10 @@ m2LG = function(gmod,response,x,id,tim,invlink=function(x)x,hetfac=function(m)1)
     if (wmod == "Exchangeable") ccfun = exchCor
     else if (wmod == "AR-M") ccfun = ar1Cor
     else if (wmod == "Independent") ccfun = function( par, coord) diag(length(coord))
+    else {
+      warning("m2LG only defined for exch, AR-M[M=1], independent working structures.  Returning NA for m2LG")
+      return(as(NA, "numeric"))
+      }
     }
   else if (inherits(gmod, "yagsResult")) {
     beta = coef(gmod)
@@ -52,6 +56,10 @@ m2LG = function(gmod,response,x,id,tim,invlink=function(x)x,hetfac=function(m)1)
     if (wmod == "exchangeable") ccfun = exchCor
     else if (wmod == "ar1") ccfun = ar1Cor
     else if (wmod == "independence") ccfun = function( par, coord) diag(length(coord))
+    else {
+      warning("m2LG only defined for exch, ar1, independence working structures.  Returning NA for m2LG")
+      return(as(NA, "numeric"))
+      }
    }
   else stop("requires either gee or yags result")
   return(gauPatCorLL(response, x, tim, beta, var, id, ccfun, rho, invlink, hetfac))

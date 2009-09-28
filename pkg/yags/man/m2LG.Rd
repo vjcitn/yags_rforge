@@ -34,9 +34,11 @@ transformation of Xbeta to generate mean response
 function of estimated mean to multiply variance function for heteroskedasticity
 }
 }
-%\details{
-%%  ~~ If necessary, more details than the description above ~~
-%}
+\details{
+Note that yags now computes the m2LG value as a matter of course
+for several working structures.  This code is simply called
+after yags has converged before returning the yagsResult instance.
+}
 \value{
 a scalar
 %%  ~Describe the value returned

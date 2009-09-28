@@ -36,7 +36,7 @@ setClass("yagsResult",
 	sealp="numeric", qls="numeric", pan.aic="numeric",
 	sealp.OK="logical", varnames="character",
 	n="numeric", nclus="numeric", maxni="numeric",
-        wcovmat="matrix", wcormat="matrix",
+        wcovmat="matrix", wcormat="matrix", m2LG="numeric",
 	Call="call") )
 
 setGeneric("coef", function(object, ...)standardGeneric("coef"))
@@ -358,6 +358,7 @@ if (corstruct == "unstructured")
 	mpp <- function(x, p)
 	matrix(x, p, p)
 	Call <- match.call()
+
 	final.out <- new("yagsResult", 
                 coefficients = tmpsig$coef, naive.parmvar = mpp(
 		tmpsig$bcov.naive, p), robust.parmvar = mpp(tmpsig$bcov.rob,
@@ -368,12 +369,17 @@ if (corstruct == "unstructured")
 		var.alp), qls=tmpsig$qls, pan.aic=tmpsig$pan.aic, 
                 sealp.OK=sealp.OK, varnames=varnames, n=n, nclus=nclus,
 		corstruct.tag=corstruct, maxni=maxni,
-                wcormat=wcormat, wcovmat=wcovmat, Call=Call)
+                wcormat=wcormat, wcovmat=wcovmat, 
+		Call=Call)
 	# provisional error
         if (is.na(tmpsig$ua)) warning("U.alpha apparently unsolved, check working model adequacy")
 	else if(abs(tmpsig$ua) > ctl$Ua.tol) warning(paste(
 			"Alp est func not solved, results suspect, Ua=", round(
 			tmpsig$ua, 5), sep = ""))
+        M2LG = m2LG(final.out, as.double(y), x, id, cor.met, invlink=family$linkinv,
+             hetfac=family$variance)
+        final.out@m2LG = M2LG
+#m2LG = function(gmod,response,x,id,tim,invlink=function(x)x,hetfac=function(m)1) {
 	final.out
 }
 
