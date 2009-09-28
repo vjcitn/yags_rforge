@@ -73,6 +73,14 @@ SPRuns <- yags(y~Time+treated,id=Subject,data=Spruce,
 SPRUJ <- yags(y~Time+treated,id=Subject,data=Spruce,
 		corstr="UJ.fom", alphainit=.1,
                 cor.met=as.double(rep(0:9,79)))
+#
+# some criteria of adequacy over ranges of models
+SPRUJ <- yags(y~Time+treated,id=Subject,data=Spruce,
+                corstr="ar1", alphainit=.1,
+                cor.met=as.double(rep(0:9,79)), allcrit=TRUE,
+                  lhetfam=quasi(variance="mu"), qhetfam=quasi(variance="mu^2"))
+sort(SPRUJ@m2LG)
+sort(SPRUJ@del1)
 }
 
 \keyword{ models }

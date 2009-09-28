@@ -36,7 +36,7 @@ setClass("yagsResult",
 	sealp="numeric", qls="numeric", pan.aic="numeric",
 	sealp.OK="logical", varnames="character",
 	n="numeric", nclus="numeric", maxni="numeric",
-        wcovmat="matrix", wcormat="matrix", m2LG="numeric",
+        wcovmat="matrix", wcormat="matrix", m2LG="numeric", del1="numeric",
 	Call="call") )
 
 setGeneric("coef", function(object, ...)standardGeneric("coef"))
@@ -185,7 +185,7 @@ yags <- function(formula, id,
         cor.met=NULL, family=gaussian(),
         corstruct="independence", control=yags.control(), 
         weights=NULL, betainit=NULL, alphainit=NULL, data=list(), subset=NULL,
-          allcrit=FALSE)
+          allcrit=FALSE, lhetfam=NULL, qhetfam=NULL)
 {
 #
 # $Header: /udd/stvjc/VCROOT/yags/R/yags.R,v 5.6 2008/03/14 18:39:13 stvjc Exp $
@@ -196,7 +196,7 @@ yags <- function(formula, id,
 #
 	m <- match.call(expand=FALSE)
         m$family <- m$corstruct <- m$control <- m$betainit <-
-            m$alphainit <- m$allcrit <- NULL
+            m$alphainit <- m$allcrit <- m$lhetfam <- m$qhetfam <- NULL
         m[[1]] <- as.name("model.frame")
         TMP <- eval(m, sys.parent())
 	id <- TMP[["(id)"]]
@@ -220,7 +220,7 @@ yags <- function(formula, id,
 #
 	m <- match.call(expand=FALSE)
         m$family <- m$corstruct <- m$control <- m$betainit <-
-            m$alphainit <- m$allcrit <- NULL
+            m$alphainit <- m$allcrit <- m$lhetfam <- m$qhetfam <- NULL
         m[[1]] <- as.name("model.frame")
         TMP <- eval(m, sys.parent())
 	id <- TMP[["(id)"]]
@@ -387,6 +387,8 @@ if (corstruct == "unstructured")
 #        corstruct="independence", control=yags.control(), 
 #        weights=NULL, betainit=NULL, alphainit=NULL, data=list(), subset=NULL)
     if (allcrit) {
+        if (is.null(lhetfam)) stop("must define lhetfam with allcrit=TRUE")
+        if (is.null(qhetfam)) stop("must define qhetfam with allcrit=TRUE")
         if (!is.null(subset)) stop("can't use subset with allcrit=TRUE -- please create basic data frame")
         ndata= cbind(data, id=id, cor.met=cor.met, weights=weights)
         cat("hom...")
@@ -396,10 +398,6 @@ if (corstruct == "unstructured")
           weights=weights, betainit=betainit, alphainit=.5, data=ndata)
         ar1mod.hom = yags(formula, id, cor.met, family, corstruct="ar1", control=control,
           weights=weights, betainit=betainit, alphainit=.5, data=ndata)
-        lhetfam = family
-        qhetfam = family
-        lhetfam$variance = function(mu) mu
-        qhetfam$variance = function(mu) mu^2
         cat("lin...")
         indmod.lin = yags(formula, id, cor.met, family=lhetfam, corstruct="independence", control=control,
           weights=weights, betainit=betainit, alphainit=alphainit, data=ndata)
@@ -418,13 +416,21 @@ if (corstruct == "unstructured")
         allm = lapply(list(indmod.hom, excmod.hom, ar1mod.hom,
                             indmod.lin, excmod.lin, ar1mod.lin,
                             indmod.qua, excmod.qua, ar1mod.qua), function(x)x@m2LG)
+        alld = lapply(list(indmod.hom, excmod.hom, ar1mod.hom,
+                            indmod.lin, excmod.lin, ar1mod.lin,
+                            indmod.qua, excmod.qua, ar1mod.qua), del1)
         ansm = unlist(allm)
-        names(ansm) = c("ind.hom", "exch.hom", "ar1.hom", 
+        ansd = unlist(alld)
+        names(ansd) = names(ansm) = c("ind.hom", "exch.hom", "ar1.hom", 
                            "ind.lin", "exch.lin", "ar1.lin", 
                            "ind.qua", "exch.qua", "ar1.qua")
         final.out@m2LG = c(given=M2LG.given, ansm)
+        final.out@del1 = c(given=del1(final.out), ansd)
         }
-        else final.out@m2LG = M2LG.given
+        else {
+               final.out@m2LG = M2LG.given
+               final.out@del1 = del1(final.out)
+             }
         
 #m2LG = function(gmod,response,x,id,tim,invlink=function(x)x,hetfac=function(m)1) {
 	final.out
