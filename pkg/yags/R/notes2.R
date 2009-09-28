@@ -64,13 +64,13 @@ getCriteria = function(simout,
     ans = lapply(working, doy)
     names(ans) = working
     exchGLS = gls(glsformula, corr=corCompSymm(alpinit, form=~1|id), weights=
-      glsVarFunc, data=df)
+      glsVarFunc, data=df, method="ML")
     ans[["exchGLS"]] = exchGLS
     ar1GLS = gls(glsformula, corr=corAR1(alpinit, form=~1|id), weights=
-      glsVarFunc, data=df)
+      glsVarFunc, data=df, method="ML")
     ans[["ar1GLS"]] = ar1GLS
     identGLS = gls(glsformula, corr=corIdent(form=~1|id), weights=
-      glsVarFunc, data=df)
+      glsVarFunc, data=df, method="ML")
     ans[["identGLS"]] = identGLS
     ans[["data"]] = df
     ans[["true"]] = simout@trueCor

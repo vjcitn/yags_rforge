@@ -14,7 +14,9 @@ gauPatCorLL <- function(y, x, tim, beta, var, id, clusCorFun, corPar, invlink=fu
  for (i in 1:length(inds))
   {
   mn = invlink(x[inds[[i]],] %*% beta)
-  sigi <- var*clusCorFun(  corPar, ts[[i]] )*hetfac(mn)
+  HM = diag(sqrt(as.numeric(hetfac(mn))))
+  sigi <- var*sqrt(HM)%*%clusCorFun(  corPar, ts[[i]] )%*%sqrt(HM)
+  dimnames(sigi) = NULL
   ll <- ll+dmvnorm( ys[[i]], invlink(x[inds[[i]],] %*% beta), sigi, log=TRUE )
   }
  -2*ll
