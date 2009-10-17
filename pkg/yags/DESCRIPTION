@@ -1,5 +1,5 @@
 Package: yags
-Version: 6.1-2
+Version: 6.1-4
 Title: Yet Another GEE Solver
 Author: Vince Carey <stvjc@channing.harvard.edu>
 Depends: methods, MASS, nlme

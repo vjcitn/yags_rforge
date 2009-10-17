@@ -2186,7 +2186,7 @@ jmp_buf mcpp_env;
  double ql_val, qls_val;
  /* famcodes are 1=gaussian, 2=binom, 3=poisson, 4=gamma, 
       5=log link and quadratic var, 6=id link and lin var,
-      7 = id link and quad var */
+      7 = id link and quad var, 8=log link and const var, 9=log link and lin variance (sic) */
  const int gaussian = 1;
  const int binomial = 2;
  const int poisson = 3;
@@ -2195,6 +2195,7 @@ jmp_buf mcpp_env;
  const int idlinklinvar = 6;
  const int idlinkquadvar = 7;
  const int loglinkconstvar = 8;
+ const int loglinklinvar = 9;
  
  void* mu;
  void* dmu_deta; // partial mu(eta) / partial eta
@@ -2250,6 +2251,12 @@ jmp_buf mcpp_env;
     dmu_deta = (void *)exp;
     variance = (void *)const1;
     qlfun = (void *)ql_constv;
+    break;
+  case loglinklinvar:
+    mu = (void *)exp;
+    dmu_deta = (void *)exp;
+    variance = (void *)dident;
+    qlfun = (void *)ql_identv;
     break;
   }  
  

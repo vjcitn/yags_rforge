@@ -293,12 +293,14 @@ if (corstruct == "unstructured")
            if (!(ltag %in% c("log", "identity")))
                    stop("quasi family must have log or identity link specified")
            vtag = deparse(body(family$variance))
-           if (ltag == "log" & ((vtag != "mu^2") & !convar)) stop("quasi family with log link in yags must have variance constant or mu^2")
+        #   if (ltag == "log" & ((vtag != "mu^2") & !convar)) stop("quasi family with log link in yags must have variance constant or mu^2")
            if (ltag == "log" & isTRUE(all.equal(family$variance, quasi(variance="constant")$variance))) famcode = 8
            else if (ltag == "log") famcode = 5
            else if (ltag == "identity" & vtag == "mu") famcode = 6
            else if (ltag == "identity" & vtag == "mu^2") famcode = 7
-	   else stop("quasi family in yags must have link identity and variance mu or mu^2, or link log and variance mu^2 or constant")
+	#   else stop("quasi family in yags must have link identity and variance mu or mu^2, or link log and variance mu^2 or constant")
+           else if (ltag == "log" & vtag == "mu") famcode = 9
+           else stop("link and variance combination not yet handled")
            }
 	else if(is.na(famcode <- match(famtag, c("gaussian", "binomial", "poisson",
 		"gamma"))))
