@@ -56,7 +56,7 @@ m2LG = function(gmod,response,x,id,tim,invlink=function(x)x,hetfac=function(m)re
     rho = gmod@alpha
     wmod = gmod@corstruct.tag
     if (wmod == "exchangeable") ccfun = exchCor
-    else if (wmod == "ar1") ccfun = ar1Cor
+    else if (wmod == "ar1" | wmod == "UQ.fom") ccfun = ar1Cor
     else if (wmod == "independence") ccfun = function( par, coord) diag(length(coord))
     else {
       warning("m2LG only defined for exch, ar1, independence working structures.  Returning NA for m2LG")

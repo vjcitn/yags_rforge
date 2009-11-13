@@ -186,7 +186,7 @@ yags <- function(formula, id,
         cor.met=NULL, family=gaussian(),
         corstruct="independence", control=yags.control(), 
         weights=NULL, betainit=NULL, alphainit=NULL, data=list(), subset=NULL,
-          allcrit=FALSE, lhetfam=NULL, qhetfam=NULL)
+          allcrit=FALSE, lhetfam=NULL, qhetfam=NULL , icritalp=NULL, critar1tag="ar1")
 {
 #
 # $Header: /udd/stvjc/VCROOT/yags/R/yags.R,v 5.6 2008/03/14 18:39:13 stvjc Exp $
@@ -197,7 +197,7 @@ yags <- function(formula, id,
 #
 	m <- match.call(expand=FALSE)
         m$family <- m$corstruct <- m$control <- m$betainit <-
-            m$alphainit <- m$allcrit <- m$lhetfam <- m$qhetfam <- NULL
+            m$alphainit <- m$allcrit <- m$lhetfam <- m$qhetfam <- m$icritalp <- m$critar1tag <- NULL
         m[[1]] <- as.name("model.frame")
         TMP <- eval(m, sys.parent())
 	id <- TMP[["(id)"]]
@@ -221,7 +221,7 @@ yags <- function(formula, id,
 #
 	m <- match.call(expand=FALSE)
         m$family <- m$corstruct <- m$control <- m$betainit <-
-            m$alphainit <- m$allcrit <- m$lhetfam <- m$qhetfam <- NULL
+            m$alphainit <- m$allcrit <- m$lhetfam <- m$qhetfam <- m$icritalp <- m$critar1tag <- NULL
         m[[1]] <- as.name("model.frame")
         TMP <- eval(m, sys.parent())
 	id <- TMP[["(id)"]]
@@ -394,27 +394,28 @@ if (corstruct == "unstructured")
         if (is.null(qhetfam)) stop("must define qhetfam with allcrit=TRUE")
         if (!is.null(subset)) stop("can't use subset with allcrit=TRUE -- please create basic data frame")
         ndata= cbind(data, id=id, cor.met=cor.met, weights=weights)
+        if (is.null(icritalp)) icritalp=.5
         cat("hom...")
         indmod.hom = yags(formula, id, cor.met, family, corstruct="independence", control=control,
-          weights=weights, betainit=betainit, alphainit=alphainit, data=ndata)
+          weights=weights, betainit=betainit, alphainit=icritalp, data=ndata)
         excmod.hom = yags(formula, id, cor.met, family, corstruct="exchangeable", control=control,
-          weights=weights, betainit=betainit, alphainit=.5, data=ndata)
-        ar1mod.hom = yags(formula, id, cor.met, family, corstruct="ar1", control=control,
-          weights=weights, betainit=betainit, alphainit=.5, data=ndata)
+          weights=weights, betainit=betainit, alphainit=icritalp, data=ndata)
+        ar1mod.hom = yags(formula, id, cor.met, family, corstruct=critar1tag, control=control,
+          weights=weights, betainit=betainit, alphainit=icritalp, data=ndata)
         cat("lin...")
         indmod.lin = yags(formula, id, cor.met, family=lhetfam, corstruct="independence", control=control,
-          weights=weights, betainit=betainit, alphainit=alphainit, data=ndata)
+          weights=weights, betainit=betainit, alphainit=icritalp, data=ndata)
         excmod.lin = yags(formula, id, cor.met, family=lhetfam, corstruct="exchangeable", control=control,
-          weights=weights, betainit=betainit, alphainit=.5, data=ndata)
-        ar1mod.lin = yags(formula, id, cor.met, family=lhetfam, corstruct="ar1", control=control,
-          weights=weights, betainit=betainit, alphainit=.5, data=ndata)
+          weights=weights, betainit=betainit, alphainit=icritalp, data=ndata)
+        ar1mod.lin = yags(formula, id, cor.met, family=lhetfam, corstruct=critar1tag, control=control,
+          weights=weights, betainit=betainit, alphainit=icritalp, data=ndata)
         cat("qua...")
         indmod.qua = yags(formula, id, cor.met, family=qhetfam, corstruct="independence", control=control,
           weights=weights, betainit=betainit, alphainit=alphainit, data=ndata)
         excmod.qua = yags(formula, id, cor.met, family=qhetfam, corstruct="exchangeable", control=control,
-          weights=weights, betainit=betainit, alphainit=.5, data=ndata)
-        ar1mod.qua = yags(formula, id, cor.met, family=qhetfam, corstruct="ar1", control=control,
-          weights=weights, betainit=betainit, alphainit=.5, data=ndata)
+          weights=weights, betainit=betainit, alphainit=icritalp, data=ndata)
+        ar1mod.qua = yags(formula, id, cor.met, family=qhetfam, corstruct=critar1tag, control=control,
+          weights=weights, betainit=betainit, alphainit=icritalp, data=ndata)
         cat("...\n")
         allm = lapply(list(indmod.hom, excmod.hom, ar1mod.hom,
                             indmod.lin, excmod.lin, ar1mod.lin,
