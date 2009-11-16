@@ -11,8 +11,10 @@ $Header: /udd/stvjc/VCROOT/yags/man/yags.Rd,v 5.1 2007/12/11 16:57:19 stvjc Exp 
 \usage{
 yags(formula, id, cor.met=NULL, family=gaussian(), corstruct="independence", 
     control=yags.control(), weights=NULL, betainit=NULL, alphainit=NULL, 
-    data=list(), subset=NULL)
+    data=list(), subset=NULL, allcrit=FALSE, lhetfam= NULL, qhetfam = NULL,
+    icritalp = NULL, critar1tag = "ar1")
 }
+
 %- maybe also `usage' for other objects documented here.
 \arguments{
   \item{formula}{ GLM formula }
@@ -41,6 +43,14 @@ Other options are "independence", "exchangeable", "UJ.fom",
   \item{alphainit}{ initial value of working correlation model parameters }
   \item{data}{ data source for model fit }
   \item{subset}{ expression selecting a subset for fitting }
+  \item{allcrit}{ logical -- if TRUE, compute all criteria for candidate models }
+  \item{lhetfam}{ the glm family object defining the candidate model expressing
+ linear heteroskedasticity }
+  \item{qhetfam}{ the glm family object defining the candidate model expressing
+ quadratic heteroskedasticity }
+  \item{icritalp}{ numeric initial value of alpha parameter for candidate model fits
+for criteria computation }
+  \item{critar1tag}{ string defining the corstruct to be used for candidate model fits }
 }
 
 \value{

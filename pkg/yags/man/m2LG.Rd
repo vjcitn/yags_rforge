@@ -8,7 +8,7 @@ compute a gaussian log likelihood criterion for a GEE fit
 compute a gaussian log likelihood criterion for a GEE fit
 }
 \usage{
-m2LG(gmod, response, x, id, tim, invlink = function(x) x, hetfac = function(m) 1)
+m2LG(gmod, response, x, id, tim, invlink = function(x) x, hetfac = function(m) rep(1, length(m)))
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
