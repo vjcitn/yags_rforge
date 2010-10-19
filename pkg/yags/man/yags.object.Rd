@@ -58,8 +58,8 @@ a logical vector
 }
 }
 }
-\details{
-}
+%\details{
+%}
 \keyword{ models }
 %\keyword{GEE}
 

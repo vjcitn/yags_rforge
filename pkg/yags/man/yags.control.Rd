@@ -26,18 +26,18 @@ yags.control(maxiter=15, tol=1e-04, verbose=FALSE, Ua.maxit=20, Ua.tol=0.001,
   \item{Ua.secantdel}{ delta for secant solution }
   \item{fixscale}{ is scale parameter fixed? }
 }
-\details{
-}
-\value{
-}
-\references{ ~put references to the literature/web site here ~ }
-\author{ ~~who you are~~ }
-\note{ ~~further notes~~ }
+%\details{
+%}
+%\value{
+%}
+%\references{ ~put references to the literature/web site here ~ }
+%\author{ ~~who you are~~ }
+%\note{ ~~further notes~~ }
 
-\seealso{  }
+%\seealso{  }
 
-\examples{
-}
+%\examples{
+%}
 
 \keyword{ models }
 

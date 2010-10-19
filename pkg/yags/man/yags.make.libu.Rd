@@ -35,7 +35,7 @@ Nothing returned, all side-effects.  You must typically
 exit R, reset LD\_LIBRARY\_PATH, and restart in order
 for yags to work.
 }
-\references{  }
+%\references{  }
 \author{ VJ Carey, stvjc@channing.harvard.edu }
 \note{ This approach is dependent on a fairly obsolete approach (MC++)
 to matrix computations in C++.  The next version is likely
@@ -43,7 +43,7 @@ to be based on the .Call interface, and high-performance user-written extensions
 will follow R rather than MC++ protocols. }
 
 
-\seealso{  }
+%\seealso{  }
 
 \examples{
 \dontrun{

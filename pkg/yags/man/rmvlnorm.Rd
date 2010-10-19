@@ -5,7 +5,7 @@ appendix of Wang and Carey 2004 JASA }
 \description{ simulated correlated lognormal deviates, according to
 appendix of Wang and Carey 2004 JASA }
 \usage{
-rmvlnorm(n = 100, lmu = c(2, 3, 4), lcov = diag(c(2, 3, 4)))
+rmvlnorm(n = 100, lmu = c(2, 3, 4), lcov = diag(c(2, 3, 4),3,3))
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

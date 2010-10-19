@@ -8,10 +8,10 @@
   The format is:
  num [1:40] 1.051 0.819 1.213 0.941 1.252 ...
 }
-\source{
-}
-\references{
-}
+%\source{
+%}
+%\references{
+%}
 \examples{
 data(WTS)
 ## maybe str(WTS) ; plot(WTS) ...

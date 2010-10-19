@@ -1,6 +1,6 @@
 
 
-rmvlnorm = function(n=100, lmu = c(2,3,4), lcov=diag(c(2,3,4))) {
+rmvlnorm = function(n=100, lmu = c(2,3,4), lcov=diag(c(2,3,4),3,3)) {
 #
 # algorithm for correlated lognormals, from Wang and Carey 2004 JASA
 # Sept 2004  lmu is the intended mean value for the lognormal response

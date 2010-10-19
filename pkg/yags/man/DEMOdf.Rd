@@ -18,12 +18,12 @@ The \code{DEMOdf} data frame has 40 rows and 7 columns.
     \item{TIM}{a numeric vector}
   }
 }
-\details{
-}
-\source{
-}
-\references{
-}
+%\details{
+%}
+%\source{
+%}
+%\references{
+%}
 \examples{
 data(DEMOdf)
 }

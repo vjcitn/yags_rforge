@@ -17,12 +17,12 @@ print.yagsResult(x, ...)
 \details{
 assembles results and prints
 }
-\value{
-}
+%\value{
+%}
 \author{ VJ Carey }
 \note{ invoked via the generic show method for class yagsResult }
 
-\examples{
-}
+%\examples{
+%}
 \keyword{ models }% at least one, from doc/KEYWORDS
 

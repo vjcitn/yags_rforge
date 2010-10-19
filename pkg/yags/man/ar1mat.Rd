@@ -20,8 +20,8 @@ returns patterned matrix; see also nlme
 patterned matrix
 }
 
-\examples{
-}
+%\examples{
+%}
 \keyword{ models }% at least one, from doc/KEYWORDS
 
 

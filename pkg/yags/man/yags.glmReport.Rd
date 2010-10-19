@@ -14,18 +14,18 @@ yags.glmReport(x, ...)
   \item{x}{ an object of class yagsResult }
   \item{\dots}{ not currently used }
 }
-\details{
-}
+%\details{
+%}
 \value{
 a matrix of model parameter estimates and standard errors
 }
-\references{ }
+%\references{ }
 \author{ VJ Carey, stvjc@gauss.med.harvard.edu }
-\note{ }
+%\note{ }
 
 
-\examples{
-}
+%\examples{
+%}
 \keyword{ models }
 %\keyword{ longitudinal data }% at least one, from doc/KEYWORDS
 

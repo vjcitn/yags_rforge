@@ -13,8 +13,8 @@ mvnsamp(n=100, m=rep(0, 4), v=diag(4))
   \item{m}{ number of entries/cluster }
   \item{v}{ covariance }
 }
-\details{
-}
+%\details{
+%}
 \value{
 a data.frame with columns y, id and tim
 }

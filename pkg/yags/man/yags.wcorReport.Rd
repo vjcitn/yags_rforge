@@ -13,19 +13,19 @@ yags.wcorReport(x, ...)
   \item{x}{ an object of class yagsResult }
   \item{\dots}{ not currently used }
 }
-\details{
-}
+%\details{
+%}
 \value{
 A string including parameter estimates and standard errors
 where available.
 }
-\references{ }
+%\references{ }
 \author{ VJ Carey, stvjc@gauss.med.harvard.edu }
-\note{ }
+%\note{ }
 
-\seealso{ }
+%\seealso{ }
 
-\examples{ }
+%\examples{ }
 \keyword{ models }
 %\keyword{ longitudinal data }% at least one, from doc/KEYWORDS
 

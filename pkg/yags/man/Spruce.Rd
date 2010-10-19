@@ -24,8 +24,8 @@ Compare to V\&R sitka data.
 See Diggle, Liang and Zeger 1994, and the oswald distribution at 
 statlib.
 }
-\references{
-}
+%\references{
+%}
 \examples{
 data(Spruce)
 ## maybe str(Spruce) ; plot(Spruce) ...

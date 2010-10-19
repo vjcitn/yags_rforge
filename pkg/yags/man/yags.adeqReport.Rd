@@ -23,12 +23,12 @@ good class design for model reporting utilities.
 a string including adequacy statistics including
 the Rotnitzky-Jewell criterion and Wei Pan's AIC analogue.
 }
-\references{  }
+%\references{  }
 \author{ VJ Carey, stvjc@gauss.med.harvard.edu }
-\note{ }
+%\note{ }
 
-\seealso{ }
+%\seealso{ }
 
-\examples{ }
+%\examples{ }
 \keyword{ models }% at least one, from doc/KEYWORDS
 

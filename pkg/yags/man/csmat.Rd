@@ -3,7 +3,7 @@
 %- Also NEED an `\alias' for EACH other topic documented here.
 \title{ create correlation matrix of exchangeable structure }
 \description{
-  ~~ A concise (1-5 lines) description of what the function does. ~~
+create correlation matrix of exchangeable (compound symmetric) structure
 }
 \usage{
 csmat(n=4, rho=0.5)
@@ -13,11 +13,11 @@ csmat(n=4, rho=0.5)
   \item{n}{ dimension of square matrix }
   \item{rho}{ correlation parameter }
 }
-\details{
-}
-\value{
-}
-\references{  }
+%\details{
+%}
+%\value{
+%}
+%\references{  }
 
 
 
