@@ -1,0 +1,85 @@
+
+%
+% NOTE -- ONLY EDIT THE .Rnw FILE!!!  The .tex file is
+% likely to be overwritten.
+%
+
+%\VignetteIndexEntry{build an ff representation of grouped data instance}
+%\VignetteDepends{ff}
+%\VignetteKeywords{GEE, bounded memory}
+%\VignettePackage{geeni}
+
+\documentclass[12pt]{article}
+
+\usepackage{amsmath,pstricks}
+\usepackage[authoryear,round]{natbib}
+\usepackage{hyperref}
+
+
+\textwidth=6.2in
+\textheight=8.5in
+%\parskip=.3cm
+\oddsidemargin=.1in
+\evensidemargin=.1in
+\headheight=-.3in
+
+\newcommand{\scscst}{\scriptscriptstyle}
+\newcommand{\scst}{\scriptstyle}
+
+
+\newcommand{\Rfunction}[1]{{\texttt{#1}}}
+\newcommand{\Robject}[1]{{\texttt{#1}}}
+\newcommand{\Rpackage}[1]{{\textit{#1}}}
+\newcommand{\Rmethod}[1]{{\texttt{#1}}}
+\newcommand{\Rfunarg}[1]{{\texttt{#1}}}
+\newcommand{\Rclass}[1]{{\textit{#1}}}
+
+\textwidth=6.2in
+
+\bibliographystyle{plainnat} 
+ 
+\begin{document}
+%\setkeys{Gin}{width=0.55\textwidth}
+
+\title{Building a grouped data gdManager based on ff}
+\author{VJ Carey}
+\maketitle
+
+We want a representation of grouped data that can be operated
+on with small memory footprint.  We will store two data components
+that allow retrieval of individual groups from disk based on ff
+objects.
+
+<<dod>>=
+library(nlme)
+# from help(groupedData)
+  Orth.new <-  # create a new copy of the groupedData object
+       groupedData( distance ~ age | Subject,
+                   data = as.data.frame( Orthodont ),
+                   FUN = mean,
+                   outer = ~ Sex,
+                   labels = list( x = "Age",
+                     y = "Distance from pituitary to pterygomaxillary fissure" ),
+                   units = list( x = "(yr)", y = "(mm)") )
+dim(Orth.new)
+library(ff)
+library(geeni)
+targdir = system.file("ffdemo", package="geeni")
+mantargdir = system.file("mgrs", package="geeni")
+pref = paste(targdir, "gdm", sep="/")
+fis = dir(pref, full=TRUE)
+if (length(fis)>0) try(sapply(fis, unlink))
+flatOrth = geeni:::gd2flat(gd=Orth.new, gcol=3, prefix=pref)
+save(flatOrth, file=paste(mantargdir, "flatOrth.rda", sep="/"))
+dir(targdir)
+flatOrth
+@
+
+Note: to build a suitable image of geeni for demonstration purposes, you must
+install the package geeni and
+build this vignette.  It will write to the ffdemo and mgrs folders of the
+installed package image.  This is necessary to have appropriate physical
+filename references in the ff instances. 
+
+\end{document}
+

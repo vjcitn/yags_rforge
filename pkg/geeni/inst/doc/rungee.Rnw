@@ -1,0 +1,205 @@
+
+%
+% NOTE -- ONLY EDIT THE .Rnw FILE!!!  The .tex file is
+% likely to be overwritten.
+%
+
+%\VignetteIndexEntry{using a gdManager to deploy GEE}
+%\VignetteDepends{ff, multicore}
+%\VignetteKeywords{GEE, bounded memory computations}
+%\VignettePackage{geeni}
+
+\documentclass[12pt]{article}
+
+\usepackage{amsmath,pstricks}
+\usepackage[authoryear,round]{natbib}
+\usepackage{hyperref}
+
+
+\textwidth=6.2in
+\textheight=8.5in
+%\parskip=.3cm
+\oddsidemargin=.1in
+\evensidemargin=.1in
+\headheight=-.3in
+
+\newcommand{\scscst}{\scriptscriptstyle}
+\newcommand{\scst}{\scriptstyle}
+
+
+\newcommand{\Rfunction}[1]{{\texttt{#1}}}
+\newcommand{\Robject}[1]{{\texttt{#1}}}
+\newcommand{\Rpackage}[1]{{\textit{#1}}}
+\newcommand{\Rmethod}[1]{{\texttt{#1}}}
+\newcommand{\Rfunarg}[1]{{\texttt{#1}}}
+\newcommand{\Rclass}[1]{{\textit{#1}}}
+
+\textwidth=6.2in
+
+\bibliographystyle{plainnat} 
+ 
+\begin{document}
+%\setkeys{Gin}{width=0.55\textwidth}
+
+\title{Bounded-memory GEE using gdManager/ff}
+\author{VJ Carey}
+
+\maketitle
+
+\section{Introduction}
+
+This is a very simple approach to illustrating three principles
+of deployable statistical methodology.  First, data are
+accessed flexibly, without the requirement that all records can be
+accessed simultaneously in main memory.  Second, computations
+are isolated where possible so that they may be dispatched to slave
+cores in a multicore system.  Third, effort is made to maximize
+reuse of existing numerical/statistical
+facilities in base R packages to program a GEE solver.
+This is not a fully general
+attempt at deployability.
+
+\clearpage
+
+\section{Resources}
+
+We have run the ``buildff'' vignette for the geeni package, so that
+the following succeed.
+<<getd>>=
+library(geeni)
+gmdir = paste(system.file(package="geeni"), "mgrs", sep="/")
+load(paste(gmdir, "flatOrth.rda", sep="/"))
+flatOrth
+@
+
+\clearpage
+
+The \texttt{flatOrth} object manages access to information on the
+orthodontistry dataset from nlme.  The key task supported by the 
+manager is retrieval of a specified cluster of observations
+using the getGrp method:
+<<lkg>>=
+getGrp(flatOrth,1)
+getGrp(flatOrth,4)
+@
+
+We now consider how to compute an updating step in a Newton-Raphson
+algorithm for solving the working independence generalized equation corresponding to the
+generalized linear model with components specified by an R \texttt{family}
+object.  
+
+For $I$ observed clusters indexed by $i$, let $y_i$ denote an $n_i \times 1$
+response vector satisfying 
+\[
+E[y_i|x_i] = \mu_i(\beta) = g^{-1}( x_i \beta),
+\] 
+\[
+\mbox{var}(y_i) = V(\mu_i)
+\]
+where $x_i$ is $n_i \times p$ matrix of covariates, 
+and
+$g(\cdot)$ and $V(\cdot)$ are link and variance functions from the family
+of GLMs.  We will eventually accommodate a working intracluster correlation
+model, but for now adopt working independence.
+We want to solve
+\[
+\sum_i \frac{\partial \mu_i(\beta)}{\partial \beta}^t V^{-1}(\mu_i)[y_i - \mu_i(\beta)] = 
+\sum_i D_i^t V_i^{-1}r_i = 0
+\]
+for $\beta$ by iterating 
+\[
+\hat{\beta}^{(s)} = \hat{\beta}^{(s-1)} + (\sum_i D_i^t V^{-1}_i D_i)^{-1}(\sum_i D_i^t V^{-1}_i r_i)
+\]
+over $s = 1, \ldots$ until convergence.
+
+
+
+<<glminf>>=
+getDep = function (x) deparse(x@formula[[2]])
+getEta = function (gd, i, beta) getX(gd, i) %*% beta
+getMu = function (gd, i, beta, family) 
+    as.numeric(family()$linkinv(getEta(gd, i, beta)))
+getX = function (gd, i) 
+{
+    dat = getGrp(gd, i)
+    dep = getDep(gd)
+    cbind(1,dat[, colnames(dat) != dep, drop = FALSE])
+}
+getY = function (gd, i) getGrp(gd, i)[, getDep(gd)]
+Di = function (gd, i, beta, family) 
+    as.numeric(family()$mu.eta(getEta(gd, i, beta))) * getX(gd, i)
+Vinv.i = function(gd, i, beta, family) diag(1/family()$variance(getMu(gd, i, beta, family)))
+ri = function(gd, i, beta, family) getY(gd,i) - getMu(gd, i, beta, family)
+beta = c(0,0,0)
+delb = function(gd, beta, family) {
+ DD = Di(gd,1,beta,family)
+ val = t(DD) %*% Vinv.i(gd,1,beta,family) 
+ val1 = val %*% DD
+ val2 = val %*% ri(gd,1,beta,family)
+ for  (i in 2:length(gd@discrim)) {
+    DD = Di(gd, i, beta, family)
+    val = t(DD) %*% Vinv.i(gd,i,beta,family) 
+    val1 = val1 + val %*% DD
+    val2 = val2 + val %*% ri(gd,i,beta,family)
+ }
+ solve(val1)%*%val2
+}
+delb( flatOrth, beta, gaussian )
+@
+For the Gaussian model the constituents seem to be correct.
+
+\clearpage
+
+Now we factor this so that quantities for
+each cluster can be computed separately.
+<<lkf,keep.source=TRUE>>=
+Gcomps = function(gd, i, beta, family) {
+ DD = Di(gd,i,beta,family)
+ val = t(DD) %*% Vinv.i(gd,i,beta,family) 
+ val1 = val %*% DD
+ val2 = val %*% ri(gd,i,beta,family)
+ list(DtVDi=val1, DtVri=val2)
+}
+combi = function (x, y) 
+   list(x[[1]] + y[[1]], x[[2]] + y[[2]])
+library(foreach)
+library(doMC)
+registerDoMC(2)  # for mac
+comps = foreach(i = 1:27, .combine=combi) %dopar% 
+    { Gcomps(flatOrth,i,c(0,0,0),gaussian) } 
+comps
+del = solve(comps[[1]])%*%comps[[2]]
+beta = beta + del
+comps = foreach(i = 1:27, .combine=combi) %dopar% 
+    { Gcomps(flatOrth,i,beta,gaussian) } 
+comps
+@
+
+\clearpage
+
+A generic solver is then
+<<dog>>=
+pargee = function( gd, family, binit, maxit = 20, tol=1e-6) {
+ beta = binit
+ del = Inf
+ curit = 1
+ nclus = length(gd@discrim)
+ while (max(abs(del)) > tol ) {
+  delcomp = foreach( i = 1:nclus, .combine=combi) %dopar%
+       Gcomps( gd, i, beta, family )
+  del = solve(delcomp[[1]])%*%delcomp[[2]]
+  beta = beta + del
+  curit = curit + 1
+  if (curit > maxit) stop(paste("maxit [", maxit, "] iterations exceeded"))
+ }
+ beta
+}
+pargee( flatOrth, gaussian, c(0,0,0) )
+@
+ 
+
+
+
+\end{document}
+
+

@@ -1,0 +1,3 @@
+exportClasses("gdManager")
+exportMethods("getGrp")
+export(pargee)  # eventually should be a method
