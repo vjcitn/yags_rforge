@@ -136,6 +136,8 @@ concatMods <- function(x, mstub="mod",type=c("se","p")[1],dig=3,clean=TRUE) {
 #
        tm <- t(matrix(as.character(t(cm)), nr = ncol(cm)))
        tm[is.na(tm)] <- " "
+	 gg = grep("NA", tm)
+        if (length(gg)>0) tm[gg] <- " "
        tm[tm == "(p=NA)"] <- " "
        tm[tm == "(SE=NA)"] <- " "
        dimnames(tm) <- dimnames(cm)
