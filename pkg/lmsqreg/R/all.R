@@ -377,7 +377,7 @@ zscores <- function(y, x, obj)
 }
 local.winsorization <- function(x, y, ncut = 5, k = 20)
 {
-require(outpack)
+require(parody)
 # SCCS version local.winsorization.q 1.1 97/04/24
 # /usr16/stdevs/stdev0f/SLIBS/lmsqreg.dev.obs/SCCS/s.local.winsorization.q
 # this function winsorizes outliers
@@ -472,8 +472,8 @@ require(outpack)
 	}
 	else print(paste(sum(unlist(nout)), "outliers"))
 	retord <- order(as.integer(unlist(iindsspl)))
-	return(x = as.double(unlist(xspl))[retord], y = as.double(unlist(yspl))[
-		retord], bad = unlist(bad))
+	return(list(x = as.double(unlist(xspl))[retord], y = as.double(unlist(yspl))[
+		retord], bad = unlist(bad)))
 }
 get.quantiles <- function(lmsobj, targetx, pvec = c(0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95))
 {

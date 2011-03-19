@@ -1,7 +1,5 @@
 \name{lmsqreg.fit}
 \alias{lmsqreg.fit}
-[1] "gam.spar.R"      "get.quantiles"   "lmsqreg.search"  "locwin.envelope"
-[5] "Version"
 \alias{gam.spar.R}
 \alias{get.quantiles}
 \alias{lmsqreg.search}

@@ -1,9 +1,8 @@
 Package: lmsqreg
-Version: 0.0-7
+Version: 0.0-9
 Title: LMS (Cole-Green Stat in Med 1992 quantile regression)
 Author: VJ Carey <stvjc@channing.harvard.edu>
 Maintainer: VJ Carey <stvjc@channing.harvard.edu>
 Description: algorithms and graphics for nonlinear quantile regression
 License: LGPL
 URL: http://www.biostat.harvard.edu/~carey
-Packaged: Tue Feb  7 10:14:55 2006; stvjc
