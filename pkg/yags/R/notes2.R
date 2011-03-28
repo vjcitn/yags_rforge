@@ -103,13 +103,15 @@ setMethod("show", "hetEval", function(object) {
 hetEval = function(NSIM=100, 
    hetSimParms=hetsim.control(varfun4sim = function(x)1:4, mvgen=mvrnorm),
    naiveCritParms = getCriteria.control(yagsfam=gaussian(), yagsformula=y~x,
-     glsformula=y~x),
+     glsformula=y~x, doer=get("%do%")),
    oracleCritParms = getCriteria.control(yagsfam=quasi(var=mu), yagsformula=y~x,
      glsformula=y~x, glsVarFunc=varFunc(~x))) {
+ require(foreach)
  outnaive = list()
  outoracle = list()
  runif(1)
- for (i in 1:NSIM) {
+ assign("%doer%", doer)
+ foreach (i = 1:NSIM) %doer% {
    data = do.call("hetSim", hetSimParms)
    nCritParms = c(simout=data, naiveCritParms)
    outnaive[[i]] = do.call("getCriteria", nCritParms)
