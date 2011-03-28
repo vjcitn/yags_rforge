@@ -103,9 +103,10 @@ setMethod("show", "hetEval", function(object) {
 hetEval = function(NSIM=100, 
    hetSimParms=hetsim.control(varfun4sim = function(x)1:4, mvgen=mvrnorm),
    naiveCritParms = getCriteria.control(yagsfam=gaussian(), yagsformula=y~x,
-     glsformula=y~x, doer=get("%do%")),
+     glsformula=y~x),
    oracleCritParms = getCriteria.control(yagsfam=quasi(var=mu), yagsformula=y~x,
-     glsformula=y~x, glsVarFunc=varFunc(~x))) {
+     glsformula=y~x, glsVarFunc=varFunc(~x)),
+     doer = get("%do%")) {
  require(foreach)
  outnaive = list()
  outoracle = list()
