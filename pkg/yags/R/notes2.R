@@ -100,7 +100,7 @@ setMethod("show", "hetEval", function(object) {
  print(names(object[[1]][[1]]))
 })
     
-hetEval = function(NSIM=100, 
+hetEvalOLD = function(NSIM=100, 
    hetSimParms=hetsim.control(varfun4sim = function(x)1:4, mvgen=mvrnorm),
    naiveCritParms = getCriteria.control(yagsfam=gaussian(), yagsformula=y~x,
      glsformula=y~x),
@@ -119,6 +119,26 @@ hetEval = function(NSIM=100,
    oCritParms = c(simout=data, oracleCritParms)
    outoracle[[i]] = do.call("getCriteria", oCritParms)
  }
+ new("hetEval", list(naive=outnaive, oracle=outoracle))
+}
+
+hetEval = function(NSIM=100, 
+   hetSimParms=hetsim.control(varfun4sim = function(x)1:4, mvgen=mvrnorm),
+   naiveCritParms = getCriteria.control(yagsfam=gaussian(), yagsformula=y~x,
+     glsformula=y~x),
+   oracleCritParms = getCriteria.control(yagsfam=quasi(var=mu), yagsformula=y~x,
+     glsformula=y~x, glsVarFunc=varFunc(~x)), applier=lapply) {
+ outboth = applier(1:NSIM, function(x) {
+   data = do.call("hetSim", hetSimParms)
+   nCritParms = c(simout=data, naiveCritParms)
+   ansn = do.call("getCriteria", nCritParms) 
+   oCritParms = c(simout=data, oracleCritParms)
+   anso = do.call("getCriteria", oCritParms)
+   gc()
+   list(naive=ansn, oracle=anso)
+})
+ outnaive = lapply(outboth, function(x)x[[1]])
+ outoracle = lapply(outboth, function(x)x[[2]])
  new("hetEval", list(naive=outnaive, oracle=outoracle))
 }
 
