@@ -2,16 +2,18 @@ setClass("simout", representation(df="data.frame", trueCor="character", varfun4s
 
 hetSim = function(NCLUST=50, CLUSTSIZE=4, RHO=.5, alpinit=.25, trueCor="ind",
   working = c("exchangeable", "ar1", "independence"),
-  varfun4sim = function(x) rep(1,length(x)), mvgen = mvrnorm) {
+  varfun4sim = function(x) rep(1,length(x)), mvgen = mvrnorm, logscale=FALSE) {
     require(yags)
     require(MASS)
     require(nlme)
     XL = list()
     
+    TX = function(x)x
+    if (logscale) TX=log
     for (i in 1:NCLUST) {
      XL[[i]] = rep(NA, CLUSTSIZE)
      for (j in 1:CLUSTSIZE) {
-      XL[[i]][j] = runif(1,j,j+1)
+      XL[[i]][j] = TX(runif(1,j,j+1))
      }
     }
     
@@ -31,9 +33,10 @@ hetSim = function(NCLUST=50, CLUSTSIZE=4, RHO=.5, alpinit=.25, trueCor="ind",
     }
     
     Y = matrix(NA, nc=CLUSTSIZE, nr=nrow(MU))
+    if (logscale) TX=exp
     for (i in 1:nrow(MU)) {
-     A = sqrt(diag(varfun4sim(MU[i,])))
-     Y[i,] = mvgen(1, MU[i,], A %*% R %*% A)
+     A = sqrt(diag(varfun4sim(TX(MU[i,]))))
+     Y[i,] = mvgen(1, TX(MU[i,]), A %*% R %*% A)
     }
     empcor = cor(Y)
     
@@ -80,10 +83,10 @@ getCriteria = function(simout,
 
 hetsim.control = function(NCLUST=50, CLUSTSIZE=4, RHO=.5, alpinit=.25, trueCor="ind",
   working = c("exchangeable", "ar1", "independence"),
-  varfun4sim = function(x) rep(1,length(x)), mvgen = mvrnorm) {
+  varfun4sim = function(x) rep(1,length(x)), mvgen = mvrnorm, logscale=FALSE) {
   list(NCLUST=NCLUST, CLUSTSIZE=CLUSTSIZE, RHO=RHO,
     alpinit=alpinit, trueCor=trueCor, working=working, varfun4sim=varfun4sim,
-    mvgen=mvgen)
+    mvgen=mvgen, logscale=logscale)
 }
 
 getCriteria.control = function(working=c("exchangeable", "ar1", "independence"),

@@ -19,7 +19,7 @@ adap = function (struc, varmod = "f", corstr = "exch")
     ainds = sapply(plist[1:4], function(x) grep("ar1", x))
     einds = sapply(plist[1:4], function(x) grep("exch", x))
     iinds = sapply(plist[1:4], function(x) grep("ind", x))
-    useN = sapply(plist[1:4], function(x) grep("^n",x))
+    useN = lapply(plist[1:4], function(x) grep("^n",x))  # sapply -> lapply Mar 30 2011
     useF = sapply(plist[1:4], function(x) grep("^f",x))
     ncoef = ncol(plist$CON)
     Ladap = rep(NA, ncoef)
