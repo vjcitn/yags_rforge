@@ -1801,9 +1801,9 @@ jmp_buf mcpp_env;
    {
    for (int j = 0 ; j < ni ; j++ )
     {
-    if (i!=j) set_el(ans,i,j) = alp.el(tim.el(i,0),tim.el(j,0)) /
-          sqrt(alp.el(tim.el(i,0),tim.el(i,0))*
-               alp.el(tim.el(j,0),tim.el(j,0)));
+    if (i!=j) set_el(ans,i,j) = alp.el((int)tim.el(i,0),(int)tim.el(j,0)) /
+          sqrt(alp.el((int)tim.el(i,0),(int)tim.el(i,0))*
+               alp.el((int)tim.el(j,0),(int)tim.el(j,0)));
     }
    }
   for (int i = 0 ; i < ni ; i++ )
