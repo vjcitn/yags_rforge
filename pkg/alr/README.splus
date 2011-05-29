@@ -1,0 +1,122 @@
+
+Below is verbatim document on alr for Splus
+----
+README: C implementation of alternating logistic regression for S-PLUS 
+Readme version: 4.6 98/03/10
+Software version "4D", (Mar 10 1998 release)
+Dir /usr16/stdevs/stdev0f/SLIBS/alr.dev/SCCS/s.README
+alr.c version: 4.11
+alr.q version: 4.2
+==============================================================================
+software author: VJ Carey, stvjc@gauss.med.harvard.edu
+with the assistance of Aidan McDermott, Channing Laboratory
+
+---Feb 23 1998 -- introduces the class2z function and doc
+              for building lpwor regression models
+
+---Feb 17 1998 -- a problem was noted in invwcond.  the 
+              problem was rectified when BLAS and LINPACK
+              routines were translated with the current
+              version of f2c
+
+---Sept 15 1997 -- interface for "cluster weighted" estimation
+              provided, limited tests against glm 
+     
+              TO DO: retrofit the Z-matrix development tools
+              to the permutation invariant version
+
+---June 19 1997 -- "permutation invariant" version with
+               Z_i possessing n_i(n_i - 1) rows instead
+               of n_i choose 2
+                -- interface for weighted estimation
+               provided, tested, weights check, but
+               standard error estimation requires considerable
+               additional work
+
+Note to users of version 4D and beyond.  Exchangeable or 2class models 
+require no changes to existing calls.  Explicit specification of Z matrices
+are significantly altered.  You must now code for all n*(n-1)
+"redundant" pairs to achieve order-invariance of standard error
+estimates for alpha terms.  More documentation will follow.
+
+---March 23 1997 -- many maintenance alterations, SCCS version 3.x
+begun
+
+---June 1 1994, preparations for model-formula interface;
+targeting statlib distribution for S-PLUS
+
+---Dec 15 1993
+These sources came from CHANNING PORT.SOURCE
+
+Please note: version numbers are not coordinated across doc and
+source files.
+
+Now in CHANLIB
+--------------
+
+This particular distribution is by request only.  Future
+contribution to statlib is planned for September 1994.
+
+Copying restrictions: see "COPYING"; this software is
+distributed subject to GNU free software distribution rules.
+
+July 27 1994: installation as an S-plus LIBRARY is as follows.
+(updated Mar 23 1997)
+
+These files are provided:
+
+#   3734 -rw-r--r-- README
+#  42583 -r--r--r-- alr.c
+#  20083 -r--r--r-- chanmat.c
+#  25828 -r--r--r-- clinluxxy.c
+#   1192 -rw-r--r-- diag_as_vec.c
+#    803 -r--r--r-- alr.h
+#    386 -rw-r--r-- chanmat.h
+#    787 -rw-r--r-- chanmatfuns.h
+#   3207 -rw-r--r-- chanmatstruct.h
+#    248 -rw-r--r-- convert.h
+#   4668 -r--r--r-- f2c.h
+#    578 -rw-r--r-- First.lib.q
+#   6612 -r--r--r-- alr.q
+#   1356 -rw-r--r-- print.alr.q
+#    988 -rw-r--r-- print.summary.alr.q
+#   1403 -rw-r--r-- summary.alr.q
+#   5447 -r--r--r-- alr.d
+#   2137 -rw-r--r-- alr.id.dput
+#   3133 -rw-r--r-- alr.x.dput
+#   1562 -rw-r--r-- alr.y.dput
+#   2322 -rw-r--r-- alr.z.dput
+#   3186 -rw-r--r-- alr.zid.dput
+#    507 -rw-r--r-- test.s
+#    627 -rw-r--r-- test.mast
+#   1267 -rw-r--r-- testout.supplied.4D
+#   1467 -rw-r--r-- tmastout.supplied.4D
+#   4374 -rw-r--r-- c2z.c
+#   3388 -r--r--r-- class2z.d
+
+
+0) Make sure they are all unloaded in a directory called "alr".
+It can be a subdirectory of the host machine's local library
+directory.
+
+1)  Create the Makefile
+
+``Splus CHAPTER *.q *.d *.c''
+
+2)  Edit the Makefile
+You may want to set up for dynamic loading, check
+the variable ``WHICH_LOAD'' near top of Makefile.
+
+3)  Use it
+``make install'' -- AND THEN
+``make''
+
+(or ``make dyn.load'', e.g.)
+
+4)  Run the tests.
+``Splus < test.s > testout''
+``diff testout testout.supplied.4D''
+``Splus < test.mast > testout''
+``diff testout tmastout.supplied.4D''
+
+There may be minor differences due to Splus version differences.

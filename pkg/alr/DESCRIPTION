@@ -1,0 +1,9 @@
+Package: alr
+Version: 0.0-4
+Title: alternating logistic regression
+Author: VJ Carey <stvjc@channing.harvard.edu>
+Maintainer: VJ Carey <stvjc@channing.harvard.edu>
+Description: program for regression analysis of clustered binary response
+License: GPL
+URL: http://www.biostat.harvard.edu/~carey
+Packaged: 2011-05-29 11:20:21 UTC; stvjc
