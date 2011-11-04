@@ -1,5 +1,5 @@
 Package: edd
-Version: 1.33.0
+Version: 1.34.0
 Title: expression density diagnostics
 biocViews: Bioinformatics, DifferentialExpression
 Author: Vince Carey <stvjc@channing.harvard.edu>
