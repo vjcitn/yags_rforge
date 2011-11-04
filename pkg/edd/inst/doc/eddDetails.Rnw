@@ -1,0 +1,632 @@
+
+% NOTE -- ONLY EDIT THE .Rnw FILE!!!  The .tex file is
+% likely to be overwritten.
+%
+%\VignetteIndexEntry{Expression Density Diagnostics Details}
+%\VignetteDepends{Biobase, edd, class}
+%\VignetteKeywords{Expression Diagnostics}
+%\VignettePackage{edd}
+\documentclass[12pt]{article}
+
+\usepackage{amsmath}
+\usepackage[authoryear,round]{natbib}
+\usepackage{hyperref}
+
+
+\textwidth=6.2in
+\textheight=8.5in
+%\parskip=.3cm
+\oddsidemargin=.1in
+\evensidemargin=.1in
+\headheight=-.3in
+
+\newcommand{\scscst}{\scriptscriptstyle}
+\newcommand{\scst}{\scriptstyle}
+
+\bibliographystyle{plainnat} 
+ 
+\begin{document}
+
+@
+\title{Expression density diagnostics in Bioconductor: Details}
+\author{Vince Carey {\tt stvjc@channing.harvard.edu}}
+\maketitle
+\tableofcontents
+
+@
+\section{Introduction}
+
+The {\tt edd} function of {\it edd} 1.2 assists in exploratory
+data analysis of microarray expression data.  A HOWTO
+document is supplied with the {\it edd} package and
+provides a brief treatment of use of the {\it edd} function.
+This document covers the computational and statistical
+details.
+
+The objective of {\tt edd} is to deliver to the user a
+classification of shapes of gene-specific distributions
+of expression over a collection of arrays.  The primary input
+to {\tt edd} is an {\tt ExpressionSet}.  The classification is
+carried out as follows.
+\begin{itemize}
+\item Gene-specific expression vectors (rows of the ExpressionSet's
+exprs content) are transformed to zero median and unit MAD (median
+absolute deviation).
+\item A reference catalog of transformed distributions is
+constructed, defining the set of distributional shapes of interest.
+\item Each transformed expression vector is associated with an
+element of the reference catalog.
+(or
+with 'doubt' or 'outlier').
+\end{itemize}
+Options to {\it edd} that specify the methods of
+constructing catalogs or associating data
+with catalog elements will be spelled out
+in this document.
+
+Assessment of distributional shape is a common activity
+in exploratory data analysis, carried out with boxplots,
+histograms, density estimation and other tools.
+The novel problem in the
+microarray setting is to deal efficiently with thousands of distributions.
+If a manageable number of 'classes' of distributions
+can be identified, discovery and inference should be enhanced.
+
+In this document, we review some basic activities related
+to graphically depicting distinct distributional shapes.
+Section \ref{grapass} provides very elementary
+tools for plotting cumulative distribution functions (CDFs),
+and for plots that facilitate contrasts of distributions
+(QQ and QQ difference plots).
+Section \ref{cata} discusses creation of reference catalogs
+of distributions with distinct shapes.
+Section \ref{assoc} describes
+application of pattern recognition algorithms to
+the problem of distribution shape classification.
+
+Note that this document spends considerable time on graphical
+considerations that have become secondary in dealing with
+expression density diagnostics.  HOWTO-edd gives a more
+concise treatment of how to work directly with the software.
+
+
+\section{Graphics for assessment of distributional shape}
+\label{grapass}
+
+A basic tool in our approach to classifying distributions
+is a method for depicting departure from Gaussianity, or,
+more generally, depicting features of distributions
+so that they may be qualitatively distinguished
+using simple graphics.
+
+To begin, we present some cdf plots for a few familiar distributions.
+%We define the {\tt rescaleQuantiles} function to eliminate
+%location and scale -- 
+Each distribution is transformed
+to have mean zero and unit median absolute deviation (MAD).
+This allows us to focus on graphics that
+expose distributional 'shape'.
+Figure \ref{cdf} presents discretized CDFs
+for the transformed distributions.
+
+<<echo=FALSE>>=
+library(edd)
+canonp <- c(.025,.05,seq(.1,.9,.1),.95,.975)
+iqr <- function(x) quantile(x,.75)-quantile(x,.25)
+rescaledQuantiles <- function(qfun,rfun,pctiles=canonp,...) {
+ ctr <- qfun(.5,...)
+ #sca <- qfun(.75,...)-qfun(.25,...)
+ samp <- rfun(25000,...)
+ sca <- mad(samp)
+ (qfun(pctiles,...)-ctr)/sca
+}
+qN01 <- rescaledQuantiles(qnorm,rnorm)
+qc1 <- rescaledQuantiles(qchisq,rchisq,df=1)
+qt3 <- rescaledQuantiles(qt,rt,df=3)
+qln <- rescaledQuantiles(qlnorm,rlnorm)
+qu <- rescaledQuantiles(qunif,runif)
+qb28 <- rescaledQuantiles(qbeta,rbeta,shape1=2,shape2=8)
+qb82 <- rescaledQuantiles(qbeta,rbeta,shape1=8,shape2=2)
+
+
+@
+\begin{figure}
+<<echo=FALSE,fig=TRUE>>=
+par(mfrow=c(2,2))
+plot(qN01,canonp,main="N(0,1)")
+plot(qc1,canonp,main="chisq(1)")
+plot(qt3,canonp,main="t(3)")
+plot(qln,canonp,main="LN(0,1)")
+@
+\caption{CDF plots for 4 distributions transformed
+to median 0 MAD 1.}
+\label{cdf}
+\end{figure}
+
+@
+
+Figure \ref{qqn} provides QQnormal plots of the same distributions.
+The motivation is that a 45 degree line is obtained for N(0,1),
+departures from 45 degree line are evidence of nonGaussianity.
+
+\begin{figure}
+<<echo=FALSE,fig=TRUE>>=
+par(mfrow=c(2,2))
+plot(y=qN01,x=qN01,main="N(0,1)")
+abline(0,1)
+plot(y=qc1,x=qN01,main="chisq(1)")
+abline(0,1)
+plot(y=qt3,x=qN01,main="t(3)")
+abline(0,1)
+plot(y=qln,x=qN01,main="LN(0,1)")
+abline(0,1)
+
+@
+\caption{QQ-normal plots for
+the transformed distributions.}
+\label{qqn}
+\end{figure}
+
+
+The QQ difference plots
+(Figures \ref{qqd} and \ref{qqd2}) express departures from normality
+more effectively -- a horizontal line is obtained for the
+standard Gaussian distribution, and departures from the
+horizontal line are easily detected and have systematic interpretation:
+
+\begin{figure}
+<<echo=FALSE,fig=TRUE>>=
+par(mfrow=c(2,2))
+plot(canonp,qN01-qN01,main="N(0,1)")
+plot(canonp,qc1-qN01,main="chisq(1)")
+plot(canonp, qt3-qN01,main="t(3)")
+plot(canonp, qln-qN01,main="LN(0,1)")
+@
+\caption{QQ difference plots.}
+\label{qqd}
+\end{figure}
+
+\begin{figure}
+<<echo=FALSE,fig=TRUE>>=
+par(mfrow=c(2,2))
+plot(canonp,qu-qN01,main="U(0,1)")
+plot(canonp,qb28-qN01,main="Beta(2,8)")
+plot(canonp,qb82-qN01,main="Beta(8,2)")
+@
+\caption{QQ difference plots, continued.}
+\label{qqd2}
+\end{figure}
+
+Formally, these `flat QQ-normal' plots are defined as
+$$
+[x,y] = [\Phi^{-1}(p_j), y_j - 
+\Phi^{-1}(p_j)],$$
+with $p_j \approx \mbox{card}\{y_k < y_j\}/n$.
+If $y_j$ are approximately Gaussian, this graph
+is close to a horizontal line at ordinate zero.
+
+To conclude this section, we apply the flat QQ normal
+plotting method to several simulated datasets to
+illustrate the efficacy of the transformation in
+detection of departures from Gaussian distributional shape.
+See Figure  \ref{f4}.
+<<echo=FALSE>>=
+pfq <- function(x,main) plot(x,xlab="gaussian deviate", ylab="flat QQNorm transform",
+ylim=c(-3,3), main=main)
+star <- function(x) (x-median(x))/mad(x)
+
+@
+\begin{figure}
+<<echo=FALSE,fig=TRUE>>=
+par(mfrow=c(2,2))
+pfq(flatQQNorm(star(rnorm(1000))),main="N01")
+pfq(flatQQNorm(star(rt(1000,3))),main="t3")
+pfq(flatQQNorm(star(rbeta(1000,2,8))),main="B(2,8)")
+pfq(flatQQNorm(star(rbeta(1000,8,2))),main="B(8,2)")
+@
+\caption{Flat QQnormal plots for 1000 centered and
+rescaled realizations from
+each of four parametric distributions.}
+\label{f4}
+\end{figure}
+
+@
+\clearpage
+\section{Catalogs of distributional shapes}
+\label{cata}
+\subsection{Underlying data structure}
+
+The {\tt eddDist} class has been defined to
+encapsulate information on distributions
+that can be used in {\it edd}.
+<<>>=
+print(getSlots("eddDist"))
+@
+The stub is a string that can be prepended with "p", "d", "r", "q"
+to obtain names of R functions that compute cdf, density, samples,
+or quantiles from distributions.  The parms vector specifies
+the parameters of this distribution, it should be named numeric.
+The median and mad are sometimes not computable analytically
+and are obtained by simulation and stored here for reference.
+The tag slot holds a convenient string name that should clearly
+indicate the distribution at hand, and latexTag uses mathematical
+notation if necessary for use with latex rendering.  The plotlim
+is a numeric 2-vector prescribing the x limits for a plot of
+the density of the distribution.
+
+A list of these objects is supplied with the library:
+<<>>=
+print(names(eddDistList))
+print(eddDistList[1:2])
+@
+Visualization of a distribution can be accomplished
+with the {\tt plotED} function.
+<<fig=TRUE>>=
+plotED(eddDistList[[3]])
+@
+
+\subsection{A catalog defined by parametric cdfs}
+The eddDistList is a catalog defined by parametric cdfs,
+because the R function given by {\tt paste("p",stub(x),sep="")}
+for eddDist {\tt x} is a computable cdf.  It may thus
+be employed in KS testing of goodness of fit.
+
+\subsection{A catalog defined by transformed quantiles}
+
+The function {\tt makeCandmat.theor} obtains
+quantiles from each distribution defined by eddDist
+objects in the eddDistList parameter, transformed to have
+median 0 and mad 1.  The number of quantiles to be
+computed is given by the first argument.  In application
+this will usually match the dimension of the expression
+vectors.
+<<>>=
+print(makeCandmat.theor( 5, eddDistList[1:3] ))
+
+@
+\subsection{A catalog defined by multiple transformed realizations}
+The function {\tt makeCandmat.raw} obtains samples from each 
+distribution defined by eddDist objects in the eddDistList
+parameter.  The generator is constructed to sample from
+the distribution after transformation to have median 0 and mad 1.
+The sample size is determined by the first argument,
+and the number of representative samples to be obtained for each
+eddDistList element is given in the second argument.
+<<>>=
+print(makeCandmat.raw( 5, 2, eddDistList[1:3] ))
+
+@
+\section{{\tt edd}: associating expression vectors with catalog elements}
+\label{assoc}
+%edd <- function( eset, distList=eddDistList, tx=c(sort, flatQQNormY)[[1]],
+%  refDist=c("multiSim", "theoretical")[1],
+%  method=c("knn", "nnet", "test")[1], nRowPerCand=100, ...) {
+The {\tt edd} function is used to define catalog construction
+and to specify the method by which expression vectors (rows of
+{\tt exprs(eset)}) are classified.
+
+\subsection{Test-based association}
+An {\tt eddDist} object contains sufficient information to
+allow the computation of the {\tt ks.test} function for
+general goodness of fit testing.  The {\tt maxKSp} function
+computes the maximum p-value of these tests over all
+the elements of the eddDistList.
+
+To compute a single p-value for the goodness of fit
+of a given expression vector to the distributional
+shape specified in an eddDist object, the
+{\tt testVec} method is used.
+
+\begin{verbatim}
+setMethod("testVec", c("numeric","eddDist","logical"),
+  function(x,eddd,is.centered) {
+    if (is.centered) x <- Mad(eddd)*x + med(eddd)
+    argl <- list(x, CDFname(eddd))
+    if (length(Parms <- parms(eddd))>0)
+       for (j in 1:length(Parms)) argl[[2+j]] <- Parms[j]
+    do.call("ks.test", argl)
+})
+\end{verbatim}
+The idea is that (if {\tt is.centered} is TRUE) the data have been transformed
+to have median 0 and mad 1.  The data vector is
+transformed once more to have the same median and mad
+as the parametric distribution specified in the {\tt eddDist}
+object.  
+
+<<>>=
+x <- rnorm(50)
+print(testVec(x, N01, FALSE))
+print(testVec(x, LN01, FALSE))
+@
+We see that the p value for the appropriate model (N(0,1))
+is fairly high, and that for lognormal is very small.
+To visualize the discrepancy, we have {\tt plotED}:
+<<fig=TRUE>>=
+plotED(LN01, data=x)
+@
+ 
+To use test-based association with {\tt edd}, specify method="test"
+and provide a threshold that the maximum p value must exceed for
+a classification to occur.  If no p value exceeds the threshold,
+then no catalog member is a satisfactory match to the shape
+of the expression density, and 'outlier' is declared.
+[If two p-values exceeded the threshold and were close to each other,
+we should declare 'doubt'.  This is not yet handled.]
+
+\subsection{$k$-NN association}
+
+If {\tt edd} is used with method="knn" and parameters k and l
+are provided, k-nearest neighbor classification is performed,
+treating the expression vector and the elements of the reference
+catalog as n-dimensional multivariate data.   The tx parameter
+of {\tt edd} determines that the order statistics of the
+expression vector and catalog elements are used (if tx=sort),
+or that the comparisons are conducted after transformation
+of both data and catalog elements to the flatQQnorm space
+(if tx=flatQQNormY).
+
+\subsection{Neural net association}
+If {\tt edd} is used with method="nnet" and a size (and potentially
+other parameters) is specified, then classification of
+the expression vectors occurs using prediction from a neural
+net fit to the reference catalog.  The role of the tx parameter
+is as described in the previous subsection.
+
+%
+%@
+%\section{Expressing distributional shapes in data}
+%\label{datashap}
+%
+%To this point we have been computing with theoretical quantiles.
+%To get a sense for how variability in data affect
+%capacity to discriminate distributions in practice,
+%we obtain 100 samples of size 50 from each reference
+%distribution (and a mixture), center and scale to median 0
+%and mad 1, and obtain the ordered Q-Q difference transformation
+%$$
+%[x,y] = [\Phi^{-1}(p_j), y_j - 
+%\Phi^{-1}(p_j)],$$
+%with $p_j \approx \mbox{card}\{y_k < y_j\}/n$.
+%If $y_j$ are approximately Gaussian, this graph
+%is close to a horizontal line at ordinate zero.
+%as a 1-1 transformation of each sample.  If the transformed
+%numbers are
+%ordered by the value of $x$, each sample 
+%is now represented by an ordered $n$-dimensional configuration with
+%potentially recognizeable shape, if the sample is drawn
+%from one of the reference distributions.
+%
+%
+%
+%<<R>>=
+%library(edd)
+%set.seed(1234)
+%rawref <- makeCandmat.raw(nPerRow=50,nRowPerCand=100)
+%ref <- t(apply(rawref,1,centerScale))
+%print(table(row.names(ref)))
+%@
+%
+%<<R>>=
+%dists <- row.names(ref)
+%msplit <- function(mat,disc) {
+% out <- list()
+% ud <- unique(disc)
+% nout <- length(ud)
+% for (i in 1:nout)
+%  out[[as.character(ud[i])]] <- mat[disc==ud[i],]
+% out
+%}
+%fq.matrows <- function(mat)
+% t(apply(mat,1,function(x,...){tmp <- flatQQNorm(x); tmp$y[order(tmp$x)]}))
+%boxplot.matrix <- function(mat,...) {
+% out <- list()
+% for (i in 1:ncol(mat))
+%  out[[i]] <- mat[,i]
+% boxplot(out,...)
+%}
+%
+%<<R>>=
+%sref <- msplit(ref, row.names(ref))
+%qsref <- lapply(sref,fq.matrows)
+%qsnames <- names(sref)
+%
+%<<fig=TRUE>>=
+%par(mfrow=c(2,2))
+%for (i in 1:4)
+% {
+% boxplot.matrix(qsref[[i]],main=qsnames[i], ylim=c(-2,2))
+% }
+%@
+%\clearpage
+%<<fig=TRUE>>=
+%par(mfrow=c(2,2))
+%for (i in 5:6)
+% {
+% boxplot.matrix(qsref[[i]],main=qsnames[i], ylim=c(-2,2))
+% }
+%@
+%\clearpage
+%%\section{Classification of known densities: pattern recognition
+%%approaches}
+%%\label{pattrec}
+%%
+%%We can treat the {\tt ref} matrix as a training set
+%%with known labels.  A conforming test set is now constructed,
+%%with one candidate (expo(4)) that should not be recognizeable.
+%%
+%%<<R>>=
+%%mktest <- function()
+%%{
+%%test <- matrix(NA,nr=120,nc=50)
+%%test[1:20,] <- rnorm(1000)
+%%test[21:40,] <- rt(1000,3)
+%%test[41:60,] <- rexp(1000,4)
+%%test[61:80,] <- rmixnorm(1000,.75,0,1,4,1)
+%%test[81:100,] <- runif(1000)
+%%test[101:120,] <- rlnorm(1000)
+%%test
+%%}
+%%test <- mktest()
+%%
+%%@
+%%Here are the labels of the simulated data.
+%%<<R>>=
+%%testcl <- c(rep("n01",20), rep("t3",20), rep("expo4",20), 
+%%      rep("mixn",20), rep("u01",20), rep("ln01",20))
+%%
+%%@
+%%We must transform data and reference to QQ difference.
+%%<<R>>=
+%%fq.ref <- fq.matrows(ref)
+%%rescale.test <- t(apply(test,1,centerScale))
+%%fq.test <- fq.matrows(rescale.test)
+%%
+%%@
+%%Now we use k-nearest neighbor classification with three
+%%stringencies.  We have 100 representatives of each reference class.
+%%<<R>>=
+%%library(class)
+%%out <- knn( train=fq.ref, cl=row.names(fq.ref), test=fq.test, k=50, l=26)
+%%print(table(given=testcl, knn51.20=out, exclude=NULL))
+%%out <- knn( train=fq.ref, cl=row.names(fq.ref), test=fq.test, k=10, l=2)
+%%print(table(given=testcl, knn10.2=out, exclude=NULL))
+%%
+%%@
+%%Another approach is directly test-based.  The maxKSp procedure
+%%will search through a specified collection of distributions
+%%and name the one with which a sample is minimally discrepant.
+%%Corrections are introduced to deal with the fact that the
+%%sample has been centered and rescaled.
+%%
+%%<<R>>=
+%%cs.test <- t(apply(test,1,centerScale))
+%%test.based <- apply(cs.test,1,maxKSp)
+%%print(table(given=testcl,test.based=test.based))
+%%
+%%@
+%%\begin{verbatim}
+%%based on 50 runs (11 truncated for test-based)
+%%multiCand
+%%      
+%%testcl b28  csq1 ln mix1  n01 t3  u
+%%  b28   15     0  0    2    2  0  1
+%%  csq1   0    13  7    0    0  0  0
+%%  ln     1     7 11    0    0  0  0
+%%  mix1   1     0  0   18    0  0  0
+%%  n01    2     0  0    0   13  2  2
+%%  t3     1     0  0    0    4 13  0
+%%  u      1     0  0    0    1  0 18
+%%
+%%uniCand
+%%      
+%%testcl b28  csq1 ln mix1  n01 t3  u
+%%  b28   16     0  0    0    2  0  2
+%%  csq1   2    12  4    1    0  0  0
+%%  ln     4     7  9    1    0  0  0
+%%  mix1  16     0  0    4    0  0  0
+%%  n01    2     0  0    0   12  2  3
+%%  t3     1     0  1    0    3 13  0
+%%  u      1     0  0    0    1  0 18
+%%
+%%test-based
+%%      
+%%testcl  b28 csq1 ln mix1  n01 t3  u
+%%  b28    11    0  1    2    3  2  1
+%%  csq1    0   15  3    0    0  0  0
+%%  ln      2    2 14    2    0  0  0
+%%  mix1    3    0  4   13    0  0  0
+%%  n01     3    0  0    0    6  8  2
+%%  t3      2    0  0    1    4 12  0
+%%  u       4    0  0    0    4  1 11
+%%
+%%net-based (size 6, 200 iter, training=multiCand)
+%%      
+%%testcl  b28 csq1 ln mix1 n01 t3  u
+%%  b28     8    1  3    3   4  0  1
+%%  csq1    0   17  2    0   0  0  0
+%%  ln      1   16  3    0   0  0  0
+%%  mix1    1    0  0   18   0  0  0
+%%  n01     2    0  0    0  12  4  2
+%%  t3      1    0  1    0   3 15  0
+%%  u       2    0  0    0   1  0 17
+%%\end{verbatim}
+%%@
+%%\section{Application to demonstration expression data}
+%%\label{expr}
+%%
+%%We will first use the eset example data from Biobase as 26 representatives
+%%of a single population.  First we get a sense for the marginal
+%%frequencies of different distributional shapes.
+%%We will use both k-nn and
+%%nnet classification
+%%
+%%<<>>=
+%%library(Biobase)
+%%data(eset)
+%%show(eset)
+%%edd1 <- eddObsolete( eset, k=4, l=2)
+%%print(table(edd1))
+%%print(sum(table(edd1)))
+%%
+%%edd2 <- eddObsolete( eset, ref="nnet" )
+%%print(table(edd2))
+%%print(sum(table(edd2)))
+%%@
+%%We see that the nnet procedure declares
+%%doubt more often than the 4-nn procedure
+%%which requires that at least two of the four
+%%nearest neighbors be in the same class.
+%%Now let us see if they agree when both make a decision:
+%%<<>>=
+%%print(table(edd1,edd2))
+%%print(sum(table(edd1,edd2)))
+%%@
+%%
+%%The most typical use of edd will involve comparing
+%%two ExpressionSets.  First we divide the eset ExpressionSet
+%%into two, based on the value of phenoData cov1.
+%%<<>>=
+%%es1 <- eset[ , eset$cov1 == 1]
+%%es2 <- eset[ , eset$cov1 == 2]
+%%@
+%%Now we classify distributional shapes of genes
+%%in each set and cross-tabulate:
+%%<<>>=
+%%ed1 <- eddObsolete( es1, k=4, l=2)
+%%ed2 <- eddObsolete( es2, k=4, l=2)
+%%print(table(ed1,ed2))
+%%@
+%%<<>>=
+%%OK <- !is.na(ed1) & !is.na(ed2)
+%%print((1:500)[OK][ ed1[OK] =="mix1" &
+%% ed2[OK] == "mix2" ] )
+%%
+%%<<fig=TRUE>>=
+%%par(mfrow=c(2,1))
+%%hist(exprs(es1)[376,],xlim=c(0,90))
+%%hist(exprs(es2)[376,],xlim=c(0,90))
+%%@
+%%<<>>=
+%%print(t.test(exprs(es1)[376,],
+%%exprs(es2)[376,]))
+%%<<fig=TRUE>>=
+%%par(mfrow=c(2,1))
+%%hist(exprs(es1)[436,],xlim=c(-20,80))
+%%hist(exprs(es2)[436,],xlim=c(-20,80))
+%%@
+%%<<>>=
+%%print(t.test(exprs(es1)[436,], exprs(es2)[436,]))
+%%@
+%%This dataset is quite small and it is hard to
+%%reason definitively about distributional shapes
+%%with 13 observations.  However, 
+%%gene 376 appears to have
+%%bimodal distributions in both
+%%substrata.  The shapes for
+%%gene 436 appear different, even
+%%though their locations are
+%%adjudged indistinguishable by the t-test.
+%%
+%%
+%@
+\end{document}

@@ -59,8 +59,6 @@ facilities in base R packages to program a GEE solver.
 This is not a fully general
 attempt at deployability.
 
-\clearpage
-
 \section{Resources}
 
 We have run the ``buildff'' vignette for the geeni package, so that
@@ -71,8 +69,6 @@ gmdir = paste(system.file(package="geeni"), "mgrs", sep="/")
 load(paste(gmdir, "flatOrth.rda", sep="/"))
 flatOrth
 @
-
-\clearpage
 
 The \texttt{flatOrth} object manages access to information on the
 orthodontistry dataset from nlme.  The key task supported by the 
@@ -115,21 +111,18 @@ over $s = 1, \ldots$ until convergence.
 
 
 <<glminf>>=
-getDep = function (x) deparse(x@formula[[2]])
-getEta = function (gd, i, beta) getX(gd, i) %*% beta
-getMu = function (gd, i, beta, family) 
-    as.numeric(family()$linkinv(getEta(gd, i, beta)))
-getX = function (gd, i) 
-{
-    dat = getGrp(gd, i)
-    dep = getDep(gd)
-    cbind(1,dat[, colnames(dat) != dep, drop = FALSE])
-}
-getY = function (gd, i) getGrp(gd, i)[, getDep(gd)]
-Di = function (gd, i, beta, family) 
-    as.numeric(family()$mu.eta(getEta(gd, i, beta))) * getX(gd, i)
-Vinv.i = function(gd, i, beta, family) diag(1/family()$variance(getMu(gd, i, beta, family)))
-ri = function(gd, i, beta, family) getY(gd,i) - getMu(gd, i, beta, family)
+geeni:::getDep
+geeni:::getEta
+geeni:::getMu
+geeni:::getX 
+geeni:::getY
+geeni:::Di
+geeni:::Vinv.i
+geeni:::ri
+@
+Here's code for a single updating step from an initial
+value of zero:
+<<doco>>=
 beta = c(0,0,0)
 delb = function(gd, beta, family) {
  DD = Di(gd,1,beta,family)
@@ -147,21 +140,30 @@ delb = function(gd, beta, family) {
 delb( flatOrth, beta, gaussian )
 @
 For the Gaussian model the constituents seem to be correct.
+<<lkg,eval=TRUE,echo=FALSE,results=hide>>=
+library(nlme)
+example(groupedData)
+<<lklm>>=
+lm(distance~age+Sex,data=Orth.new)
+@
+Any discrepancy in the intercept is attributable to 
+different factor coding for Sex.
 
-\clearpage
+
 
 Now we factor this so that quantities for
 each cluster can be computed separately.
 <<lkf,keep.source=TRUE>>=
-Gcomps = function(gd, i, beta, family) {
- DD = Di(gd,i,beta,family)
- val = t(DD) %*% Vinv.i(gd,i,beta,family) 
- val1 = val %*% DD
- val2 = val %*% ri(gd,i,beta,family)
- list(DtVDi=val1, DtVri=val2)
-}
-combi = function (x, y) 
-   list(x[[1]] + y[[1]], x[[2]] + y[[2]])
+geeni:::Gcomps
+@
+We will use foreach and need an accumulator
+that will work with the list components defined
+above.
+<<accum>>=
+geeni:::combi
+@
+Here's a demonstration:
+<<howto>>=
 library(foreach)
 library(doMC)
 registerDoMC(2)  # for mac
@@ -175,26 +177,14 @@ comps = foreach(i = 1:27, .combine=combi) %dopar%
 comps
 @
 
-\clearpage
-
 A generic solver is then
 <<dog>>=
-pargee = function( gd, family, binit, maxit = 20, tol=1e-6) {
- beta = binit
- del = Inf
- curit = 1
- nclus = length(gd@discrim)
- while (max(abs(del)) > tol ) {
-  delcomp = foreach( i = 1:nclus, .combine=combi) %dopar%
-       Gcomps( gd, i, beta, family )
-  del = solve(delcomp[[1]])%*%delcomp[[2]]
-  beta = beta + del
-  curit = curit + 1
-  if (curit > maxit) stop(paste("maxit [", maxit, "] iterations exceeded"))
- }
- beta
-}
+geeni::pargee
 pargee( flatOrth, gaussian, c(0,0,0) )
+@
+To fix the factor coding discrepancy, if necessary:
+<<domore,eval=FALSE,keep.source=TRUE>>=
+flatOrth@numdat[,"Sex"] = flatOrth@numdat[,"Sex"]-1  # overwrite allowed
 @
  
 

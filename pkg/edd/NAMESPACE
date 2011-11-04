@@ -1,0 +1,6 @@
+
+exportClasses(eddDist)
+
+exportMethods(CDFname, genName, latexTag, Mad, med, parms, plotlim, qfName, qfun, stub, tag, testVec)
+
+export(eddDistList, T3, U01, N01, LN01, B82, CS1, B28, centerScale, dmixnorm, edd, eddObsolete, flatQQNorm, flatQQNormY, fq.matrows, latEDtable, makeCandmat.raw, makeCandmat.theor, maxKSp, mkt, plotED, pmixnorm, qmixnorm, rmixnorm, rmixnorm.alt, MIXN1)

@@ -1,0 +1,271 @@
+
+% NOTE -- ONLY EDIT THE .Rnw FILE!!!  The .tex file is
+% likely to be overwritten.
+%
+%\VignetteIndexEntry{HowTo: Use the edd package}
+%\VignetteKeywords{Expression Analysis}
+%\VignetteDepends{edd}
+%\VignettePackage{edd}
+\documentclass[12pt]{article}
+
+\usepackage{amsmath}
+\usepackage[authoryear,round]{natbib}
+\usepackage{hyperref}
+
+
+\textwidth=6.2in
+\textheight=8.5in
+%\parskip=.3cm
+\oddsidemargin=.1in
+\evensidemargin=.1in
+\headheight=-.3in
+
+\newcommand{\scscst}{\scriptscriptstyle}
+\newcommand{\scst}{\scriptstyle}
+
+\bibliographystyle{plainnat} 
+ 
+\begin{document}
+
+@
+\title{HowTo Use the Bioconductor {\tt edd} package}
+\author{Vince Carey {\tt stvjc@channing.harvard.edu}}
+\maketitle
+\tableofcontents
+
+\section{Introduction}
+
+{\it edd} is a package that assists with one aspect
+of exploratory data analysis for microarrays.  The
+basic question addressed in {\it edd} is the variety
+of shapes of gene-specific distributions of expression 
+in collections of microarrays.  Use of the package is
+most sensible when there are numerous arrays obtained under
+the same experimental condition or for a given clinical
+condition.  The key idea is that marginal gene-specific
+distributions may have a relatively number of different
+qualitative shapes, some of which may be of considerable
+substantive interest (e.g., multimodal shapes), and
+some of which may be of methodologic importance (e.g.,
+when one group of subjects has a skewed distribution
+for a gene, and another has a symmetric distribution
+for the same gene, use of a log transform is counterindicated).
+
+In this brief HOWTO, we illustrate directly the
+use of the {\it edd} package.  We will investigate
+the diversity of distributions in the two main
+groups of Golub's leukemia dataset.
+
+\section{Important caveat}
+The {\tt edd} function will transform all gene-specific expression
+distributions to have common location and scale.  This process can
+make noise have the appearance of signal.  Before using
+edd, remove all genes that have small variability.
+See the next section for an example of this filtering
+process.
+
+\section{Distributional shapes in Golub's data}
+
+First we attach the necessary libraries and
+data frames.  {\it edd}
+will require the {\it golubEsets} library.
+<<getGolub>>=
+library(edd)
+library(golubEsets)
+library(xtable)
+data(Golub_Merge)
+@
+\subsection{Filtering out genes with low variation}
+Next we filter the Golub data to require reasonable
+dispersion (confine attention to upper half sample
+defined by size of MAD) and reasonable expression
+(confine attention to genes with minimum expression level 300).
+<<filterGolub>>=
+madvec <- apply(exprs(Golub_Merge),1,mad)
+minvec <- apply(exprs(Golub_Merge),1,min)
+keep <- (madvec > median(madvec)) & (minvec > 300)
+gmfilt <- Golub_Merge[keep==TRUE,]
+@
+\subsection{Forming stratum-specific ExpressionSets}
+Finally we split the dataset into the ALL and AML samples:
+<<splitGolub>>=
+ALL <- gmfilt$ALL.AML=="ALL"
+gall <- gmfilt[,ALL==TRUE]
+gaml <- gmfilt[,ALL==FALSE]
+show(gall)
+@
+\subsection{Running edd}
+We will apply edd using an nnet classifier with the
+default reference catalog.  See the edd-Details vignette
+for information about the reference catalog.
+<<eddByType>>=
+set.seed(12345)
+alldists <- edd(gall, meth="nnet", size=10, decay=.2)
+amldists <- edd(gaml, meth="nnet", size=10, decay=.2)
+<<echo=FALSE>>=
+greo <- match(sapply(eddDistList,tag),names(table(alldists)))
+if (any(ii <- is.na(greo))) greo = greo[-which(ii)]
+@
+An example of the results is
+given by the classification calls for the first 5 genes
+in the filtered ExpressionSet:
+<<echo=FALSE>>=
+gn <- row.names(exprs(gall))
+alld <- as.character(alldists)[1:5]
+names(alld) <- gn[1:5]
+print(alld)
+@
+We can use edd with other classification methods.
+<<lookKNN>>=
+set.seed(123)
+alldistsKNN <- edd(gall, meth="knn", k=1, l=0)
+alldistsTEST <- edd(gall, meth="test", thresh=.3)
+@
+The agreement between nnet and knn procedures is not
+exact.  See table \ref{conc1}.  Choice between these methods and selection
+of tuning parameters is context-dependent.
+<<compareKNNvNN,results=tex>>=
+cap <- "Comparison of distribution shape classification by nnet (rows) and by knn (columns) methods in edd."
+print(try(xtable(
+   latEDtable(table(alldists,alldistsKNN),reorder=greo),digits=rep(0,length(table(alldists))+1),caption=cap, label="conc1")))
+@
+The test procedure is the only one at present that
+allows an outcome of 'doubt'.
+<<testTable>>=
+print(table(alldistsTEST))
+@
+\subsection{Assessing the results}
+We can assess the relative frequencies of the different shapes in the ALL
+samples with a table, see Table \ref{marg1}.
+<<ALLtable,results=tex>>=
+cap <- "Frequencies of distributional shapes in filtered ALL data."
+print(xtable(latEDtable(
+    table(alldists),reorder=greo),digits=rep(0,length(table(alldists))+1),caption=cap,label="marg1"))
+@
+We can use barplots also; see Figure \ref{compfig}.
+
+\begin{figure}
+\setkeys{Gin}{width=1.05\textwidth}
+<<compare,fig=TRUE,echo=FALSE>>=
+mymat <- matrix(c(1,2),nr=1)
+layout(mymat)#,heights=c(lcm(6),lcm(6)),widths=c(lcm(6),lcm(6)),respect=TRUE)
+barplot(table(alldists),las=2)
+barplot(table(amldists),las=2)
+@
+\caption{Compositions of distributional shapes within strata.}
+\label{compfig}
+\end{figure}
+
+Discordance between distributional shapes in gene expression
+for the AML and ALL groups can be assessed using the cross-classification,
+see Table \ref{disco1}.
+<<discordTable,results=tex>>=
+cap <- "Rows are gene-specific distribution shapes for ALL, columns for AML, and cell entries are counts of genes."
+print(xtable(latEDtable(table(alldists,amldists),reord=greo),cap=cap,
+ label="disco1"))
+@
+Let's see what these discordances
+mean.  To begin, let's get some indices
+for genes with bimodally shaped expression
+distribution for ALL,
+but approximately gaussian expression
+distribution for AML:
+<<findBiMod>>=
+print((1:540)[alldists==".75N(0,1)+.25N(4,1)" &
+  amldists=="N(0,1)"][1:5])
+@
+We consider the gene with probe D87953\_at.
+The top left panel gives the model (solid density
+trace) and a kernel density estimate applied to
+the expression levels among ALL  patients,
+and the top right is the corresponding histogram.
+
+\begin{figure}
+\setkeys{Gin}{width=0.95\textwidth}
+<<lookD87593,fig=TRUE,echo=FALSE>>=
+par(mfrow=c(2,2))
+ plotED(MIXN1,data=exprs(gall)[65,])
+ hist(exprs(gall)[65,],xlim=c(0,3500))
+ plotED(N01,data=exprs(gaml)[65,])
+ hist(exprs(gaml)[65,],xlim=c(0,3500))
+@
+\caption{Two models for D87953\_at in ALL and AML patients.}
+\end{figure}
+
+While the specific mixture model used as reference
+is not a perfect fit to the ALL data,
+the neural net classifier was sensitive
+to the bimodality.  The Gaussian
+model does not seem particularly appropriate for
+the AML data, but was the closest match in
+the reference catalog.
+
+\section{Extending the reference catalog}
+The reference catalog supplied with edd
+has components
+<<namesEDL>>=
+names(eddDistList)
+@
+There is nothing sacred about this set.  Let's
+consider its scope (we'll look at 8 of nine
+reference distributions):
+
+\begin{figure}
+<<plotRefs,fig=TRUE>>=
+par(mfrow=c(4,2))
+for (i in 1:8)
+ plotED(eddDistList[[i]])
+@
+\caption{Eight of the reference distributions in
+the eddDistList supplied with {\it edd}.}
+\end{figure}
+
+From the example above we see that it might be
+useful to have a mixture of Gaussians with
+modes separated by 6SD.  To add such a model
+we construct an instance of the {\tt eddDist}
+class:
+<<addMIXN3>>=
+#> median(rmixnorm(10000,.75,0,1,6,1))
+#[1] 0.4337298
+#> mad(rmixnorm(10000,.75,0,1,6,1))
+#[1] 1.550768  -- these are resistant stats!
+MIXN3 <- new("eddDist", stub="mixnorm", parms=c(p1=.75,m1=0,s1=1,m2=6,s2=1),
+     median=.43, mad=1.55, tag=".75N(0,1)+.25N(6,1)", plotlim=c(-3,11),
+     latexTag="$\\frac{3}{4}\\Phi+\\frac{1}{4}\\Phi_{6,1}$")
+eddDistList[["MIXN3"]] <- MIXN3
+set.seed(12345)
+alldists2 <- edd(gall, meth="nnet", size=10, decay=.2)
+print(alldists2[65])
+@
+The symbol MIXN3 used to name the list element is arbitrary,
+as are the values of the tag and latexTag slots.  But the user
+should choose meaningful values for those items.
+The new reference distribution is used for
+classification of
+probe D87953\_at.
+The two fits for the different mixtures are
+shown in Figures \ref{f3}, \ref{f1}.
+
+\begin{figure}
+<<checkFit3,fig=TRUE>>=
+plotED(MIXN3,data=exprs(gall)[65,])
+@
+\caption{Reference catalog element: mixture with modes separated by 6SD.
+Superimposed is the kernel smooth of centered/scaled and then
+translated data for D87953\_at.}
+\label{f3}
+\end{figure}
+\begin{figure}
+<<checkFit1,fig=TRUE>>=
+plotED(MIXN1,data=exprs(gall)[65,])
+@
+\caption{Reference catalog element: mixture with modes separated by 3SD.
+Superimposed is the kernel smooth of centered/scaled and then
+translated data for D87953\_at.}
+\label{f1}
+\end{figure}
+
+
+@
+\end{document}
