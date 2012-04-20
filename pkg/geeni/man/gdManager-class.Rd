@@ -39,7 +39,7 @@ This is very experimental.  We want to extend the \code{data=} pattern often use
 R modeling functions, where it is expected that an R data frame is bound to \code{data}.
 Instead we want to think of a data provider, that will provide numerical data for
 analysis upon request.  For GEE, the natural type of request is to acquire the data
-for a cluster of observations.  The \texttt{getGrp} method accomplishes this.
+for a cluster of observations.  The \code{getGrp} method accomplishes this.
 }
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~

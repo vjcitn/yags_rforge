@@ -125,15 +125,15 @@ value of zero:
 <<doco>>=
 beta = c(0,0,0)
 delb = function(gd, beta, family) {
- DD = Di(gd,1,beta,family)
- val = t(DD) %*% Vinv.i(gd,1,beta,family) 
+ DD = geeni:::Di(gd,1,beta,family)
+ val = t(DD) %*% geeni:::Vinv.i(gd,1,beta,family) 
  val1 = val %*% DD
- val2 = val %*% ri(gd,1,beta,family)
+ val2 = val %*% geeni:::ri(gd,1,beta,family)
  for  (i in 2:length(gd@discrim)) {
-    DD = Di(gd, i, beta, family)
-    val = t(DD) %*% Vinv.i(gd,i,beta,family) 
+    DD = geeni:::Di(gd, i, beta, family)
+    val = t(DD) %*% geeni:::Vinv.i(gd,i,beta,family) 
     val1 = val1 + val %*% DD
-    val2 = val2 + val %*% ri(gd,i,beta,family)
+    val2 = val2 + val %*% geeni:::ri(gd,i,beta,family)
  }
  solve(val1)%*%val2
 }
@@ -167,13 +167,13 @@ Here's a demonstration:
 library(foreach)
 library(doMC)
 registerDoMC(2)  # for mac
-comps = foreach(i = 1:27, .combine=combi) %dopar% 
-    { Gcomps(flatOrth,i,c(0,0,0),gaussian) } 
+comps = foreach(i = 1:27, .combine=geeni:::combi) %dopar% 
+    { geeni:::Gcomps(flatOrth,i,c(0,0,0),gaussian) } 
 comps
 del = solve(comps[[1]])%*%comps[[2]]
 beta = beta + del
-comps = foreach(i = 1:27, .combine=combi) %dopar% 
-    { Gcomps(flatOrth,i,beta,gaussian) } 
+comps = foreach(i = 1:27, .combine= geeni:::combi) %dopar% 
+    { geeni:::Gcomps(flatOrth,i,beta,gaussian) } 
 comps
 @
 
