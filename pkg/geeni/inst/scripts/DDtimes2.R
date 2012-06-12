@@ -1,0 +1,56 @@
+
+library(geeni)
+data(bigd)
+
+source("engine.R")
+
+library(foreach)
+library(doMC)
+registerDoMC(cores=12)
+library(ff)
+
+choppeddd = function( fmla, src )
+   parols( fmla, src, family=gaussian(), binit=c(0,0) )
+
+ww = .dfbychunk$new("dfbychunk", data=bigd[1:1e6,], chunksize=84000L)
+dd12c = list()
+dd12c$M1M = list()
+dd12c$M1M[[1]] = unix.time( choppeddd( isT~GCcon, ww ) )
+dd12c$M1M[[2]] = unix.time( choppeddd( isT~GCcon, ww ) )
+dd12c$M1M[[3]] = unix.time( choppeddd( isT~GCcon, ww ) )
+dd12c$M1M[[4]] = unix.time( choppeddd( isT~GCcon, ww ) )
+dd12c$M1M[[5]] = unix.time( choppeddd( isT~GCcon, ww ) )
+
+ww = .dfbychunk$new("dfbychunk", data=bigd[1:2e6,], chunksize=167000L)
+dd12c$M2M = list()
+dd12c$M2M[[1]] = unix.time( choppeddd( isT~GCcon, ww ) )
+dd12c$M2M[[2]] = unix.time( choppeddd( isT~GCcon, ww ) )
+dd12c$M2M[[3]] = unix.time( choppeddd( isT~GCcon, ww ) )
+dd12c$M2M[[4]] = unix.time( choppeddd( isT~GCcon, ww ) )
+dd12c$M2M[[5]] = unix.time( choppeddd( isT~GCcon, ww ) )
+
+ww = .dfbychunk$new("dfbychunk", data=bigd[1:3e6,], chunksize=250000L)
+dd12c$M3M = list()
+dd12c$M3M[[1]] = unix.time( choppeddd( isT~GCcon, ww ) )
+dd12c$M3M[[2]] = unix.time( choppeddd( isT~GCcon, ww ) )
+dd12c$M3M[[3]] = unix.time( choppeddd( isT~GCcon, ww ) )
+dd12c$M3M[[4]] = unix.time( choppeddd( isT~GCcon, ww ) )
+dd12c$M3M[[5]] = unix.time( choppeddd( isT~GCcon, ww ) )
+
+ww = .dfbychunk$new("dfbychunk", data=bigd[1:4e6,], chunksize=334000L)
+dd12c$M4M = list()
+dd12c$M4M[[1]] = unix.time( choppeddd( isT~GCcon, ww ) )
+dd12c$M4M[[2]] = unix.time( choppeddd( isT~GCcon, ww ) )
+dd12c$M4M[[3]] = unix.time( choppeddd( isT~GCcon, ww ) )
+dd12c$M4M[[4]] = unix.time( choppeddd( isT~GCcon, ww ) )
+dd12c$M4M[[5]] = unix.time( choppeddd( isT~GCcon, ww ) )
+
+ww = .dfbychunk$new("dfbychunk", data=bigd, chunksize=417000L)
+dd12c$M5M = list()
+dd12c$M5M[[1]] = unix.time( choppeddd( isT~GCcon, ww ) )
+dd12c$M5M[[2]] = unix.time( choppeddd( isT~GCcon, ww ) )
+dd12c$M5M[[3]] = unix.time( choppeddd( isT~GCcon, ww ) )
+dd12c$M5M[[4]] = unix.time( choppeddd( isT~GCcon, ww ) )
+dd12c$M5M[[5]] = unix.time( choppeddd( isT~GCcon, ww ) )
+
+save(dd12c, file="dd12c.rda")
