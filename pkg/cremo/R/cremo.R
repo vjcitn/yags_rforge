@@ -86,6 +86,7 @@ concatMods <- function(x, mstub="mod",type=c("se","p")[1],dig=3,clean=TRUE) {
 # produces a character matrix with columns corresponding to
 # models and rows corresponding to parameters or extra material
 #
+  nx = names(x)
   padsubvec <- function (subv, full, pad="-") 
   {
 #
@@ -171,7 +172,8 @@ allEx <- unique(unlist(en <- lapply(eList,names)))
 #
 out <- matrix(0, nr=length(allvar), nc=nm)
 semat <- pmat <- comat <- matrix(NA, nr=length(allvar), nc=nm)
-modn <- paste(mstub,1:nm,sep="")
+if (is.null(nx)) modn <- paste(mstub,1:nm,sep="")
+else modn = nx
 eout <- emat <- matrix(NA, nr=length(allEx), nc=nm)
 #
 # eout will hold names of all the extra material, and
