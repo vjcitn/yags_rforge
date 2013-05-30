@@ -165,8 +165,8 @@ geeni:::combi
 Here's a demonstration:
 <<howto>>=
 library(foreach)
-library(doMC)
-registerDoMC(2)  # for mac
+library(doParallel)
+registerDoParallel(cores=2)  # for mac
 comps = foreach(i = 1:27, .combine=geeni:::combi) %dopar% 
     { geeni:::Gcomps(flatOrth,i,c(0,0,0),gaussian) } 
 comps

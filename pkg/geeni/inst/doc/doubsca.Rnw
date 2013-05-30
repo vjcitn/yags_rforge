@@ -183,8 +183,8 @@ dim(bigprov$getchunk(1))
 
 We will use 8 cores.
 <<docalc>>=
-library(doMC)
-registerDoMC(cores=8)
+library(doParallel)
+registerDoParallel(cores=8)
 ut1 = unix.time(p1 <- parols( isT~GCcon, bigprov, gaussian(), binit=c(0,0) ))
 ut1
 p1
