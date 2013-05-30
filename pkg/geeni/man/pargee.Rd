@@ -59,7 +59,9 @@ V Carey <stvjc@channing.harvard.edu>
   load(fd)
   pargee(flatOrth, gaussian, c(0,0,0))
   } else {
-  cat("you need to run the buildff vignette to update support information in the installed image of geeni")
+  cat("you need to run the buildff vignette to update support information in the installed image of geeni\n")
+  cat("try running Sweave(system.file('doc/buildff.Rnw',package='geeni')) and\n")
+  cat("if all goes well, you can then run example(pargee)\n")
   }
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
