@@ -5,7 +5,7 @@
 %
 
 %\VignetteIndexEntry{using a gdManager to deploy GEE}
-%\VignetteDepends{ff, multicore}
+%\VignetteDepends{ff, foreach}
 %\VignetteKeywords{GEE, bounded memory computations}
 %\VignettePackage{geeni}
 

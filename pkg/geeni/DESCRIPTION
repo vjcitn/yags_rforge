@@ -4,7 +4,7 @@ Version: 0.0.7
 Author: VJ Carey <stvjc@channing.harvard.edu>
 Description: illustrate concepts of deployable statistical methodology
 	using GEE solution
-Suggests: multicore, doParallel, IRanges, biglm
+Suggests: parallel, doParallel, IRanges, biglm
 Depends: R (>= 2.15.0), methods, ff, foreach
 Maintainer: Vince Carey <stvjc@channing.harvard.edu>
 License: Artistic-2.0
