@@ -1,0 +1,220 @@
+
+%
+% NOTE -- ONLY EDIT THE .Rnw FILE!!!  The .tex file is
+% likely to be overwritten.
+%
+
+%\VignetteIndexEntry{using a gdManager to deploy GEE}
+%\VignetteDepends{ff, multicore}
+%\VignetteKeywords{GEE, bounded memory computations}
+%\VignettePackage{geeni}
+
+\documentclass[12pt]{article}
+
+\usepackage{amsmath,pstricks}
+\usepackage[authoryear,round]{natbib}
+\usepackage{hyperref}
+
+
+\textwidth=6.2in
+\textheight=8.5in
+%\parskip=.3cm
+\oddsidemargin=.1in
+\evensidemargin=.1in
+\headheight=-.3in
+
+\newcommand{\scscst}{\scriptscriptstyle}
+\newcommand{\scst}{\scriptstyle}
+
+
+\newcommand{\Rfunction}[1]{{\texttt{#1}}}
+\newcommand{\Robject}[1]{{\texttt{#1}}}
+\newcommand{\Rpackage}[1]{{\textit{#1}}}
+\newcommand{\Rmethod}[1]{{\texttt{#1}}}
+\newcommand{\Rfunarg}[1]{{\texttt{#1}}}
+\newcommand{\Rclass}[1]{{\textit{#1}}}
+
+\textwidth=6.2in
+
+\bibliographystyle{plainnat} 
+ 
+\begin{document}
+%\setkeys{Gin}{width=0.55\textwidth}
+
+\title{Bounded-memory GEE using gdManager/ff}
+\author{VJ Carey}
+
+\maketitle
+
+\section{Introduction}
+
+This is a very simple approach to illustrating three principles
+of deployable statistical methodology.  First, data are
+accessed flexibly, without the requirement that all records can be
+accessed simultaneously in main memory.  Second, computations
+are isolated where possible so that they may be dispatched to slave
+cores in a multicore system.  Third, effort is made to maximize
+reuse of existing numerical/statistical
+facilities in base R packages to program a GEE solver.
+This is not a fully general
+attempt at deployability.
+
+\section{Resources}
+
+We build an 'out-of-memory' clustered data set.
+<<getd>>=
+library(geeni)
+library(nlme)
+# from help(groupedData)
+  Orth.new <-  # create a new copy of the groupedData object
+       groupedData( distance ~ age | Subject,
+                   data = as.data.frame( Orthodont ),
+                   FUN = mean,
+                   outer = ~ Sex,
+                   labels = list( x = "Age",
+                     y = "Distance from pituitary to pterygomaxillary fissure" ),
+                   units = list( x = "(yr)", y = "(mm)") )
+dim(Orth.new)
+library(ff)
+library(geeni)
+#targdir = system.file("ffdemo", package="geeni")
+#mantargdir = system.file("mgrs", package="geeni")
+#pref = paste(targdir, "gdm", sep="/")
+#fis = dir(pref, full=TRUE)
+#if (length(fis)>0) try(sapply(fis, file.remove))
+flatOrth = geeni:::gd2flat(gd=Orth.new, gcol=3, prefix="")# prefix=pref)
+flatOrth
+@
+
+The \texttt{flatOrth} object manages access to information on the
+orthodontistry dataset from nlme.  The key task supported by the 
+manager is retrieval of a specified cluster of observations
+using the getGrp method:
+<<lkg>>=
+getGrp(flatOrth,1)
+getGrp(flatOrth,4)
+@
+
+We now consider how to compute an updating step in a Newton-Raphson
+algorithm for solving the working independence generalized equation corresponding to the
+generalized linear model with components specified by an R \texttt{family}
+object.  
+
+For $I$ observed clusters indexed by $i$, let $y_i$ denote an $n_i \times 1$
+response vector satisfying 
+\[
+E[y_i|x_i] = \mu_i(\beta) = g^{-1}( x_i \beta),
+\] 
+\[
+\mbox{var}(y_i) = V(\mu_i)
+\]
+where $x_i$ is $n_i \times p$ matrix of covariates, 
+and
+$g(\cdot)$ and $V(\cdot)$ are link and variance functions from the family
+of GLMs.  We will eventually accommodate a working intracluster correlation
+model, but for now adopt working independence.
+We want to solve
+\[
+\sum_i \frac{\partial \mu_i(\beta)}{\partial \beta}^t V^{-1}(\mu_i)[y_i - \mu_i(\beta)] = 
+\sum_i D_i^t V_i^{-1}r_i = 0
+\]
+for $\beta$ by iterating 
+\[
+\hat{\beta}^{(s)} = \hat{\beta}^{(s-1)} + (\sum_i D_i^t V^{-1}_i D_i)^{-1}(\sum_i D_i^t V^{-1}_i r_i)
+\]
+over $s = 1, \ldots$ until convergence.
+
+
+
+<<glminf>>=
+geeni:::getDep
+geeni:::getEta
+geeni:::getMu
+geeni:::getX 
+geeni:::getY
+geeni:::Di
+geeni:::Vinv.i
+geeni:::ri
+@
+Here's code for a single updating step from an initial
+value of zero:
+<<doco>>=
+beta = c(0,0,0)
+delb = function(gd, beta, family) {
+ DD = geeni:::Di(gd,1,beta,family)
+ val = t(DD) %*% geeni:::Vinv.i(gd,1,beta,family) 
+ val1 = val %*% DD
+ val2 = val %*% geeni:::ri(gd,1,beta,family)
+ for  (i in 2:length(gd@discrim)) {
+    DD = geeni:::Di(gd, i, beta, family)
+    val = t(DD) %*% geeni:::Vinv.i(gd,i,beta,family) 
+    val1 = val1 + val %*% DD
+    val2 = val2 + val %*% geeni:::ri(gd,i,beta,family)
+ }
+ solve(val1)%*%val2
+}
+delb( flatOrth, beta, gaussian )
+@
+For the Gaussian model the constituents seem to be correct.
+<<lkg,eval=TRUE,echo=FALSE,results=hide>>=
+library(nlme)
+example(groupedData)
+<<lklm>>=
+lm(distance~age+Sex,data=Orth.new)
+@
+Any discrepancy in the intercept is attributable to 
+different factor coding for Sex.
+
+
+
+Now we factor this so that quantities for
+each cluster can be computed separately.
+<<lkf,keep.source=TRUE>>=
+geeni:::Gcomps
+@
+We will use foreach and need an accumulator
+that will work with the list components defined
+above.
+<<accum>>=
+geeni:::combi
+@
+Here's a demonstration:
+<<howto>>=
+library(foreach)
+library(doParallel)
+registerDoParallel(cores=2)  # for mac
+comps = foreach(i = 1:27, .combine=geeni:::combi) %dopar% 
+    { geeni:::Gcomps(flatOrth,i,c(0,0,0),gaussian) } 
+comps
+del = solve(comps[[1]])%*%comps[[2]]
+beta = beta + del
+comps = foreach(i = 1:27, .combine= geeni:::combi) %dopar% 
+    { geeni:::Gcomps(flatOrth,i,beta,gaussian) } 
+comps
+@
+
+A generic solver is then
+<<dog>>=
+geeni::pargee
+pargee( flatOrth, gaussian, c(0,0,0) )
+@
+To fix the factor coding discrepancy, if necessary:
+<<domore,eval=FALSE,keep.source=TRUE>>=
+flatOrth@numdat[,"Sex"] = flatOrth@numdat[,"Sex"]-1  # overwrite allowed
+@
+
+We will remove the ff data.
+<<killff>>=
+system("rm -rf .dat.ff")
+system("rm -rf .disc.ff")
+@
+ 
+
+<<lkses>>=
+sessionInfo()
+@
+
+
+\end{document}
+
+

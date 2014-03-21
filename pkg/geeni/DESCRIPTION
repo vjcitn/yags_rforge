@@ -1,6 +1,6 @@
 Package: geeni
 Title: gee in bounded memory, data from disk etc.
-Version: 0.0.6
+Version: 0.0.7
 Author: VJ Carey <stvjc@channing.harvard.edu>
 Description: illustrate concepts of deployable statistical methodology
 	using GEE solution
