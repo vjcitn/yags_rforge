@@ -220,7 +220,7 @@ rdec <- function(formula, id, S, data = sys.parent(), subset, na.action=na.fail,
         if(!missing(data))
                 attach(na.action(data))
 	m$id <- m$S <- m$omega.init <- m$omega.low <- m$omega.high <- m$ltol <- 
-		m$contrasts <- NULL
+		m$contrasts <- m$verbose <- NULL
 	m[[1]] <- as.name("model.frame")
 	m <- eval(m, sys.parent())
 	Terms <- attr(m, "terms")
