@@ -1,5 +1,5 @@
 Package: coild
-Version: 0.5-1
+Version: 0.5-2
 Title: Classification Of Incomplete Longitudinal Datastructures
 Author: Vince Carey <stvjc@channing.harvard.edu>
 Depends: R (>= 2.15.0), MASS, methods, combinat, gee, nlme
