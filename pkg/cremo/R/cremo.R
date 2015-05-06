@@ -17,6 +17,7 @@ setGeneric("getP", function(x) standardGeneric("getP"))
 setGeneric("getExtra", function(x) standardGeneric("getExtra"))
 
 setMethod("getCoef", "lm", function(x) coef(x))
+setMethod("getCoef", "survreg", function(x) coef(x))
 setMethod("getCoef", "geese", function(x) x$beta)
 setMethod("getCoef", "gee", function(x) x$coefficient)
 setMethod("getCoef", "alr", function(x) x$coefficient)
@@ -24,6 +25,7 @@ setMethod("getCoef", "yagsResult", function(x)
           yags.glmReport(x)[,1])
 
 setMethod("getSE", "lm", function(x) summary(x)$coef[,2] )
+setMethod("getSE", "survreg", function(x) summary(x)$table[,2] )
 setMethod("getSE", "geese", function(x) summary(x)$mean[,2] )
 setMethod("getSE", "gee", function(x) summary(x)$coef[,4] )
 setMethod("getSE", "alr", function(x) summary(x)$coef[,2] )
@@ -31,12 +33,14 @@ setMethod("getSE", "yagsResult", function(x)
           yags.glmReport(x)[,4])
 
 setMethod("getP", "lm", function(x) summary(x)$coef[,4] )
+setMethod("getP", "survreg", function(x) summary(x)$table[,4] )
 setMethod("getP", "geese", function(x) summary(x)$mean[,4] )
 setMethod("getP", "gee", function(x) 2*pnorm(-abs(summary(x)$coef[,5] )))
 setMethod("getP", "alr", function(x) 2*pnorm(-abs(summary(x)$coef[,3] )))
 setMethod("getP", "yagsResult", function(x) 2*pnorm(-abs(yags.glmReport(x)[,5] )))
 
 setMethod("getVarn", "lm", function(x) names(coef(x)))
+setMethod("getVarn", "survreg", function(x) names(coef(x)))
 setMethod("getVarn", "geese", function(x) names(x$beta))
 setMethod("getVarn", "gee", function(x) names(coef(x)))
 setMethod("getVarn", "alr", function(x) names(coef(x)))
@@ -78,6 +82,13 @@ setMethod("getExtra", "yagsResult", function(x) {
   ans
   })
   
+setMethod("getExtra", "clogit", function(x) summary(x)$sctest )
+
+setMethod("getExtra", "survreg", function(x){
+sx = summary(x)
+c(scale=sx$scale, df=sx$df, LL=sx$loglik[2])
+})
+
 
 
 concatMods <- function(x, mstub="mod",type=c("se","p")[1],dig=3,clean=TRUE) {
