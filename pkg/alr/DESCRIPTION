@@ -1,5 +1,5 @@
 Package: alr
-Version: 0.0-4
+Version: 0.1.0
 Title: alternating logistic regression
 Author: VJ Carey <stvjc@channing.harvard.edu>
 Maintainer: VJ Carey <stvjc@channing.harvard.edu>
