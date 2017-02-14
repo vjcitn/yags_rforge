@@ -1,0 +1,30 @@
+language: r
+sudo: false
+cache: packages
+
+install:
+  - WORKDIR=`pwd`
+  - cd $HOME
+  - wget http://downloads.sourceforge.net/project/mcmc-jags/JAGS/4.x/Source/JAGS-4.0.1.tar.gz
+  - tar xfvz JAGS-4.0.1.tar.gz
+  - cd JAGS-4.0.1
+  - ./configure --prefix=$HOME && make && make install
+  - cd $WORKDIR
+  - export PATH=$PATH:$HOME/bin
+  - export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$HOME/lib/pkgconfig
+  - mkdir -p ~/Rlib
+  - echo 'R_LIBS=~/Rlib' > .Renviron
+  - echo 'options(repos = "http://cran.rstudio.com")' > .Rprofile
+  - Rscript -e 'install.packages("rjags", configure.args="--with-jags-prefix=$HOME --with-jags-libdir=$HOME/lib --with-jags-includedir=$HOME/include  --enable-rpath")'
+  - Rscript -e 'install.packages(c("devtools"), dependencies = TRUE)'
+  - Rscript -e 'update.packages(ask = FALSE, instlib = "~/Rlib")'
+  - Rscript -e 'devtools::install_deps(pkg = ".", dependencies = TRUE)'
+
+r_binary_packages: 
+  - rjags
+
+# send e-mails if stuff changes
+notifications:
+  email:
+    on_success: change
+    on_failure: change

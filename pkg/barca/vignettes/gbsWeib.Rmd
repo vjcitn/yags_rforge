@@ -1,0 +1,90 @@
+---
+title: "gbsWeib -- illustration of barca method for absolute risk in case-control studies"
+author: "Vincent J. Carey, stvjc at channing.harvard.edu"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{barca: GBS Type V illustration}
+  %\VignetteEncoding{UTF-8}
+output:
+  BiocStyle::pdf_document:
+    toc: yes
+    number_sections: yes
+  BiocStyle::html_document:
+    highlight: pygments
+    number_sections: yes
+    theme: united
+    toc: yes
+---
+
+
+
+This document illustrates use of barca package for the
+Type V GBS case-control data.
+
+```{r glob,echo=FALSE,results="hide"}
+topconc = 2
+suppressPackageStartupMessages({
+library(barca)
+library(modeest)
+})
+```
+
+
+# Type V illustration
+
+The layout of the input data is:
+```{r lkdat}
+dat = read.csv(system.file("csv/TypeV.csv", package="barca"))
+head(dat)
+```
+
+Here we manage the access to the data, the
+hyperparameter selections, and execution of limited MCMC sampling.
+```{r setup}
+library(barca)
+bugpath = system.file("bugs/weib.bug", package="barca")
+curtext = readLines(bugpath)
+curtext = barca:::editBugPars(curtext, beta_a=25, beta_b=2500)
+jnk = csv2jags("TypeV") # formatted
+dV = read.jagsdata("TypeV.jagsdata")
+writeLines(curtext, "TypeV.bug")
+mV = jags.model("TypeV.bug", data=dV, inits= 
+    list( llam= c(.75,.5), v = c(.75,.5)), n.chains = 3, quiet=TRUE)
+update(mV, 5000, progress.bar="none")
+cV = coda.samples(mV, "post", 10000, progress.bar="none")
+cV.summ = summary(cV)
+```
+
+Plot quantiles of pointwise posterior risk.
+
+```{r domap,fig=TRUE}
+xco = matrix(seq(.1,topconc,.1),nc=1)
+matplot(xco, cV.summ[[2]], xlab="anti-GBS Type V conc.",
+   ylab="posterior risk")
+```
+
+Posterior modes and posterior 75th percentiles.
+
+```{r dopos,fig=TRUE}
+getModes = function(run) {
+ sapply(run, function(z) apply(z,2,function(w)mlv(w,method="venter", type="shorth")$M))
+}
+
+getQ3 = function(run) {
+ sapply(run, function(z) apply(z,2,function(w)quantile(w, .75)))
+}
+
+doplot = function(run, type="Ia", at0=.01, topconc=2, toprate=1.2) {
+ m = rowMeans(getModes(run))
+ q = rowMeans(getQ3(run))
+ x = seq(0,topconc,len=length(q)+1)
+ plot(x, 100*c(at0, m), pch=19, ylim=c(0,toprate), ylab="Risk of Disease (per 100 Live Births)",
+   xlab = paste(type, "CPS-Specific IgG (ug/ml)"))
+ points(x, 100*c(at0, q), pch=17)
+}
+
+doplot(cV, type="V")
+```
+
+

@@ -1,0 +1,13 @@
+before_install:
+  - sudo add-apt-repository ppa:marutter/rrutter
+  - sudo add-apt-repository ppa:marutter/c2d4u
+  - sudo apt-get update
+  - sudo apt-get install r-base r-base-dev jags r-cran-rjags
+
+sudo: required
+language: r
+cache: packages
+
+r:
+  - release
+  - devel

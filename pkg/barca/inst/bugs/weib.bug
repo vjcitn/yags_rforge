@@ -1,0 +1,43 @@
+var str[N], d[N], id[N], A[N], # stratum, case, age, Ab
+  d1[N], lam[Nsubg], llam[Nsubg], v[Nsubg], 
+  pi[Nstrat], vca, vco, lca, lco, pmean, upper[N], x[%%N_PTS%%], T1, T2, post[%%N_PTS%%];
+
+model {
+
+# prior for pi
+for (i in 1:Nstrat)
+   { pi[i] ~ dbeta( %%BETA_A%% , %%BETA_B%% ); }
+
+# priors for v, lam
+for (i in 1:Nsubg)
+   {
+   v[i] ~ dgamma(1.0,.0001);       # slowly decreasing on pos. reals
+   llam[i] ~ dnorm(0.01,.0001);
+   log(lam[i]) <- llam[i];
+   }
+
+x[1] <- %%INI_X%%;
+for (i in 2:%%N_PTS%%)
+{
+x[i] <- x[i-1]+ %%DEL_X%%;
+}
+
+for (j in 1:%%N_PTS%%)
+{
+post[j] <- pmean*(exp(-lca*pow(x[j],vca)))/(pmean*(exp(-lca*pow(x[j],vca)))+ (1-pmean)*(exp(-lco*pow(x[j],vco))));
+}
+
+for (i in 1:N)
+ { 
+ d1[i] <- d[i] + 1;
+ d[i] ~ dbern(pi[str[i]]);
+ A[i] ~ dweib(v[d1[i]],lam[d1[i]]);  # censored weibull model
+ }
+
+vca <- v[2];
+vco <- v[1];
+lca <- lam[2];
+lco <- lam[1];
+pmean <- mean(pi[]);
+}
+
